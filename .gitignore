@@ -5,3 +5,4 @@ ignoreme*
 *.fls
 *.log
 *.out
+*.aux
