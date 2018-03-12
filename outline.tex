@@ -1,0 +1,370 @@
+% !TEX program = pdflatex
+\input{preamble/preamble.tex}
+\input{preamble/preamble_math.tex}
+\input{preamble/preamble_acronyms.tex}
+
+% \linenumbers
+
+\title{Trygve's Problem}
+\author{Jackson Loper}
+
+\usepackage{amsthm}
+\newtheorem{thm}{Theorem}
+
+\begin{document}
+\maketitle
+
+\section{Overview}
+
+When many different measurement tools are available, it can be difficult to understand
+how to combine information from different tools.  This challenge is compounded when the measurement
+tools are destructive.  For example, after processing a neuron with a given single-cell rna
+sequencing technique, we cannot generally go back and process that same neuron with a different
+technique.  This is because the measurement technique destroys the original neuron.  This means
+we can never see \emph{both measurements} for the same cell, side by side.  How, then, can we ever
+hope to understand how the different measurements relate to each other?
+
+In this paper, we hope to shed some light on this this basic mathematical question.  It has many
+applications in the hard sciences.  For example:
+
+\begin{itemize}
+
+\item Different tools may teach us different things, and we need to combine tools
+to learn everything we can.  Let $A,B$ denote two different quantities of interest about cells (e.g. morphology and gene expression).   Let us say one tool enables us to measure $A$ and another tool to measure $B$.  We would like
+to be able to say something about what morphologies are associated with what gene expressions.  
+
+\item Two labs may used different methods, but may wish to pool results.  Each lab looks at the other
+lab's data and asks themselves "what would their data have looked like if they had used our method?"  When
+they find they don't know the answer, it greatly complicates collaboration.
+
+\item One may attempt to cluster the data.  It is simple to cluster the data from one technique, and cluster the data
+from another technique -- but how can we know how those clusters correspond to one another?  
+
+\end{itemize}
+
+How could we learn the relationship between two measurement techniques, unless we can observe both measurements 
+applied to the same members of a population (dual measurement)?  In this work we show that it is indeed 
+sometimes possible to get useful and statistically rigorous bounds, even without these dual measurements.   
+
+In particular, we consider the case that we can obtain samples from a variety of subpopulations.  
+If we can assume that the \emph{relationship} between the measurements is the same in each subpopulation, 
+we can use these samples to learn something about that relationship -- even though we never see both 
+measurements for any single member of the population.  
+
+We then apply our method to single cell RNA data.  We show how different clusterings from different single 
+cell RNA modalities can be connected.  Our method yields results which are generally consistent with the scientist's
+understanding of the data and clusters, but also reveal potential gaps which could be important for further study.
+
+\section{Mathematical formulation}
+
+Mathematically, we formulate our model as follows:
+
+\begin{itemize}
+\item Let us say we have $n+m$ individual members of a population.  These could be cells, humans, or whatever
+the smallest sample unit may be for a given problem.
+\item For each individual member, we have some readily observable features by which we can group the members,
+such as the size of a cell, where an individual lives, or some other basic information.  We designate these
+features as $\ell_i$ for the $i$th individual.
+\item For the first $n$ members, we have made an observation using the first technique.  This gives us
+the values $X_1 \cdots X_n$.
+\item The last $m$ members were observed using the second technique.  This gives us the values
+$Y_{n+1} \cdots Y_{n+m}$.
+\end{itemize}
+
+For simplicity, we here assume that $\ell_i,X_i,Y_i$ take values in finite sets, $\Omega_\ell,\Omega_X,\Omega_Y$.  Extensions to more general
+cases should be straightforward, but we must leave them to future work.  
+
+We further posit a set of \emph{counterfactual} variables -- variables which could not ever be obtained in practice,
+but which help us organize our thinking.  These are sometimes referred to as "potential outcomes"  (cf. \cite{rubin2005causal}).
+
+\begin{itemize}
+\item Let $Y_1 \cdots Y_n$ denote the observations we \emph{would have gotten} if we had applied the second technique
+to the first $n$ members.
+\item Let $X_{n+1} \cdots X_n$ denote the observations we would have gotten if we had applied the first technique
+to the last $m$ members. 
+\end{itemize}
+
+Our main assumption is that 
+
+\begin{equation}
+\mathbb{P}(X_i=x,Y_i=y|L_i=\ell)=p^*(x_i|\ell_i)q^*(y_i|x_i)
+\end{equation}
+
+for some distributions $p^*,q^*$.  Moreover, we assume that the vectors $\{(p^*(x_1|\ell)\cdots p^*(x_n|\ell))\}_\ell$ 
+are linearly independent.  If this seems unlikely, it may make sense to collapse similar values of $\ell$ together.
+
+The validity of these assumptions for a given situation should be closely contemplated.  
+There are several key questions to answer
+when deciding whether this assumption is applicable.  Does the process by which samples are gathered
+gathered depend only upon $\ell$?  In particular, is it not at all statistically related to which measurement technique was 
+applied, except through $\ell$?  Are the particular measurement biases of both techniques the same for every value of $\ell$?  
+Is the statistical relationship between the quantities being measured by the 
+two techniques the same for every value of $\ell$?\footnote{Note that this is 
+automatically true if both techniques are measuring the same thing.  More generally, if two techniques have something that
+they both measure, we can restrict attention to that one common phenomenon.}  If the answer to all of these questions is yes, the assumption that $(X_i,Y_i)$ is drawn from $p(x_i|\ell_i)p(y_i|x_i)$ may apply.
+
+We can now articulate our goal.  Informally, our goal is to see what we can understand about the relationship between
+the observations $X_i$ from one measurement modality and the other measurement modality $Y_i$.  Ideally, we would
+like to learn the distribution $p^*(y_i|x_i)$.  Unfortunately, given the limitations of the data, this may not be 
+possible.  Instead, we articulate a slightly less amibtious goal: to put \emph{bounds} on $q(y_i|x_i)$.  Specifically,
+we will seek to produce functions $\hat u_1(y|x),\hat u_2(y|x)$ such that
+
+\begin{equation}\label{eq:ubound}
+\hat u_1(y|x) \leq q^*(y|x) \leq \hat u_2(y|x)
+\end{equation}
+
+In particular, we define
+
+\begin{align*}
+\Theta^* &\triangleq\left\{q:\ \sum_x p^*(x|\ell) q^*(y|x) =\sum_x p^*(x|\ell)q^*(y|x), \forall \ell,y\right\}\\ 
+u_1^*(y|x) &= \inf_{q\in\Theta^*} \{q(y|x)\} \\
+u_2^*(y|x) &= \sup_{q\in\Theta^*} \{q(y|x)\}
+\end{align*}
+
+Then obviously $u_1^*(y|x) \leq q^*(y|x)\leq u_2^*(y|x)$ is a valid bound.  Moreover, given the data and assumptions
+we have, it is as tight a bound as is possible to make (indeed, we could not hope to
+distinguish between any two $q_1,q_2 \in \Theta^*$, since they yield the same distributions on what we can
+observe).
+
+Thus, our mathematical task to to attempt to find estimators for $u_1^*,u_2^*$, which will allow us to bound
+the values of $q^*(y|x)$, and thus understand something about the relationship between the two measurements, $X$ and
+$Y$.
+
+\section{Mathematical solution}
+
+To produce useful bounds on $q^*(y|x)$, we first estimate
+
+\begin{itemize}
+\item $p^*$ using the empirical distribtion of the observations $\{X_i\}$, $\hat p(x|\ell)$
+\item $h^*(y|\ell)\triangleq \sum_x p^*(x|\ell)q^*(y|\ell)$ using the empirical distribtion of $\{Y_i\}$, $\hat h(y|\ell)$
+\end{itemize}
+
+These empirical distributions may not be quite consistent with the original assumption that the distribution
+of $X,Y|\ell$ may be written as $p^*(x|\ell)q^*(y|x)$.  In particular, it may be that there is \emph{no} value of $q$ such
+that $\sum_x \hat p(x|\ell) q(y|x) = \hat h(y|\ell)$.  There may also be many such values.  We satisfy ourselves
+with finding a somewhat good fit for $q$.  Let 
+$N_{X,\ell}=\#\{i\leq n:\ \ell_i=\ell\},N_{Y,\ell}=\#\{i> n:\ \ell_i=\ell\}$.  We take
+
+\begin{equation}
+\hat q = \argmax_q \sum_\ell N_{Y,\ell}\sum_{y}\hat h(y|\ell)\log\left(\sum_{x}\hat p(x|\ell)q(y|x)\right) + \kappa \sum_{xy} \log q(y|x)
+\end{equation}
+
+Note in the second term we apply an entropic penalty to $q$.  This is both necessary to ensure 
+that $\hat q$ is uniquely defined in terms of $\hat q,\hat h$, as well as a useful regularization.
+This regularization pushes us slightly towards uniform distributions, which makes sense if we believe that $q(y|x)>0$ 
+for each $x,y$.  Other regularizations could also be used and would potentially
+enjoy similar theoretical guarantees to the ones we will show below.
+
+This method gives us an estimate for $\hat q$, but we emphasize this estimate may be \emph{inconsistent}
+for the true value of $q^*$.  As we have said, this is simply a limitation of the data we have available -- attempting to deduce
+$q^*$ may be too much to ask for.  However, we can get bounds.  
+
+The key is to search over all possible values of $q$ which agree with $\hat q$ in terms of what \emph{is} identifiable.
+That is, let 
+
+\begin{align*}
+\hat\Theta &\triangleq\left\{q:\ \sum_x \hat p(x|\ell)\hat q(y|x) =\sum_x \hat p(x|\ell)q(y|x), \forall \ell,y\right\}\\ 
+\hat u_1(y|x) &= \inf_{q\in\hat\Theta} \left\{q(y|x) \right\} \\
+\hat u_2(y|x) &= \sup_{q\in\hat\Theta} \left\{q(y|x) \right\}
+\end{align*}
+
+These will serve as consistent estimators for our quantities of interest, $u_1^*,u_2^*$, as the following theorem shows.\vspace{.1in}
+
+\begin{thm}
+Fix any $\kappa>0$.  Let $N_{X,\ell},N_{Y,\ell}\rightarrow\infty$ uniformly in $\ell$.  Then $\hat u_1(y|x)\rightarrow u^*_1(y|x)$ in probability, and likewise for $u_2$.
+\end{thm}
+
+\begin{proof}
+
+The logic is in perfect symmetry for $u_1,u_2$, so we focus on the $u_1$ case.
+
+We begin by seeing how our process would have worked if we were able to know the exact values of $p^*$ and $h^*$,
+instead of the empirical distributions $\hat p,\hat h$.  That is, we define
+%
+\begin{align*}
+L_N(q,p,h) &\triangleq \sum_\ell N_{Y,\ell}\sum_{y}h(y|\ell)\log\left(\sum_{x}p(x|\ell)q(y|x)\right) + \kappa \sum_{xy} \log q(y|x) \\
+\Theta(p,\tilde q) &\triangleq\left\{q:\ \sum_x p(x|\ell) \tilde q(y|x) =\sum_x p(x|\ell) q(y|x), \forall \ell,y\right\}
+\end{align*}
+%
+and take
+%
+\begin{align*}
+\tilde q^* &= \argmax_q L_N(q,p^*,h^*)  \\
+\tilde u_1^*(y|x) &= \inf_{q\in \Theta(p^*,\tilde q^*)} q(y|x) \\
+\end{align*}
+%
+Our first task is to show that the map $p^*,h^* \mapsto \tilde u_1^*$ is continuous.  This follows in two steps:
+
+%%%%% two steps
+\begin{enumerate}
+% STEP I
+\item The map $p^*,h^* \mapsto \argmax_q L(q,p^*,h^*)$ is continuous.  Note that $q\mapsto L(q,p^*,h^*)$
+is \emph{uniformly} strictly concave for all $p^*,h^*$.  Indeed, the hessian is given by
+%
+\begin{align*}
+\frac{\partial L_N(q,p^*,h^*)}{\partial q(x_1,y_1) \partial q(x_2,y_2)} =& 
+    - \delta_{y_1=y_2}\sum_\ell N_{Y,\ell} h^*(y_1|\ell) 
+              \frac{p^*(x_1|\ell)p^*(x_2|\ell)}{\left(\sum_x p(x|\ell) q(y_1|x)\right)^2} \\
+    & \qquad - 2\kappa \delta_{(x_1,y_1)=(x_2,y_2)} \\
+\end{align*}
+%
+Since $q$ lives in a compact space and $L$ is continuous with respect to $p^*,h^*$, we thus 
+know that $p^*,h^* \mapsto \argmax_q L_N(q,p^*,h^*)$ is also continuous.  
+% STEP II
+\item The map $p,\tilde q \mapsto \inf_{q\in\Theta(p,\tilde q)} q(y|x)$ is continuous, as long as 
+$\{(p(x_1|\ell)\cdots p(x_n|\ell))\}_\ell$ are linearly independent (remember we have assumed the independence). 
+It would suffice to show the following: 
+for any fixed $p_1 \approx p_2,\tilde q_1 \approx \tilde q_2,x,y$ where the $\approx$ is sufficiently tight
+and $q_1\in \Theta(p_1,\tilde q_1)$, 
+we can find $q_2\in \Theta(p_2,\tilde q_2)$ with $q_1(y|x)\approx q_2(y|x)$.  We will solve
+this problem first by looking at what happens if $\tilde q$ changes, and then at what happens if $p$ changes.
+\begin{itemize}
+\item Let us say $p_1=p_2=p$.  Then, in the absence of constraints, we could solve
+our problem by simply taking $q_2 = q_1 + \tilde q_2 - \tilde q_1$.
+However, if $q_1(y|x)=0$ for any $x,y$, we cannot guarantee that the resulting $q_2$ will be a positive measure. 
+To resolve this, we note that the entropic penalty ensures that $\tilde q_2,\tilde q_1$ lie on the interior
+of the probability simplex.  This enables us to resolve the issue by constructing ``smoothed'' version of $q_1$, namely
+$(1-\alpha) q_1 + \alpha (\tilde q_1)$ which also lies on the interior of the probability simplex.   Let's do this
+rigorously.
+
+Fix any $\tilde q_1,\delta>0$ and $q_1 \in \Theta(p,\tilde q_1)$. Let $c = \min_{x,y} \tilde q_1(y|x)$.  Now pick any $\tilde q_2$ such that $|\tilde q_2-\tilde q_1|< \delta c/2$ in the uniform norm.  Take $q_2 = (1-\delta)q_1 + \delta \tilde q_1 + \tilde q_2 - \tilde q_1$.  Observe that $q_2 (y|x) \geq \delta c - \delta c/2$ for every $x,y$, i.e. it is a valid
+probability density.  Note also that $q_2 \in \Theta(p, \tilde q_2)$.  Finally, note that $|q_2 - q_1|<\delta$ in
+the uniform norm, as desired. 
+
+\item Let us now say $\tilde q_1 = \tilde q_2 = \tilde q$.  We are given $q_1,p_1,p_2$ and asked to
+produce $q_2\in \Theta(p_2,\tilde q)$ such that $q_1\approx q_2$.  Let 
+$A_{1,\ell,x} = p_1^*(x|\ell)$ and $A_{2,\ell,x} = p_2^*(x|\ell)$.  We have assumed that the rows of $A_1$ are linearly independent, so $A_1 A_1^T$ is invertible.  There is therefore an open set around $A_1$ so that as long as $A_2 \approx A_1$ we have that the rows of $A_2$ are also linearly independent.  Therefore to find $q_2 \in \Theta(p_2, \tilde q)$
+we can simply take $q_2 = q_1 - A_2^T (A_2 A_2^T)^{-1} A_2 (q_1 -\tilde q)$.  Note that $A_1 (q_1 - \tilde q) =0$, so
+the norm of $A_2 (q_1 -\tilde q)$ can be bounded.  Likewise the strength of $(A_2 A_2^T)^{-1}$
+can be bounded by the smallest absolute eigenvalue of $A_2$, which, in turn, is bounded by its proximity to $A_1$.  
+Finally, the entries of $A_2^T$ are uniformly bounded between zero and one.  In conclusion, 
+for any $p_1$ we can always find a $p_2$ close enough so that we can completely control $|q_1-q_2|$ in the Euclidean
+norm.  Since we are working in finite dimensions, this is sufficient to control it in the uniform norm.  
+
+Finally, we note that it is possible this method will result in $q_2$ being an invalid probability distribution, i.e.
+$q_2(y|x)<0$.  This could be true in two senses.  First, it might be that $\sum_y q_2(y|x)\neq 1$.  Fortunately,
+this is impossible.  Indeed, $(q_1 - \tilde q)1 =0$ so certainly $(q_2-q_1)1=(\cdots)(q_1-\tilde q)1=0$ as well.   
+Second, we might have that $q_2(y|x)<0$.  To remedy this
+second point, we take recourse to the same method explained in detail for the case $p_1=p_2$ above. 
+That is, we work with a slightly ``smoothed'' version of $q_1$, and find something which is very close to the smoothed version,
+and thereby ensure that the resulting $q_2$ is valid.  This $q_2$ is close to the slightly smoothed $q_1$ and thus also
+close to $q_1$.
+
+\end{itemize}
+
+\end{enumerate}
+
+It is well-known that the empirical distributions $\hat p, \hat h$ converge uniformly in probability to the true values, $p^*,h^*$.  Since the map $p,q \rightarrow u_1$ is continuous in a neighborhood of $p^*,q^*$, it follows that $\hat u_1$ also converge uniformly to $\tilde u_1^*$ in probability.
+
+It thus suffices to show that $\tilde u_1^* \rightarrow u_1^*$.  To show this, let $\tilde h^* =p^*\tilde q^*$,
+i.e. $h^*(y|\ell)=\sum_x p^*(x|\ell)\tilde q^*(y|x)$.  The key will be to control $\tilde h^*$ and see how that control
+enables us to control $\tilde u^*$.
+
+\begin{enumerate}
+\item $\tilde h^* \rightarrow h^*$ in the uniform norm as 
+$N_{Y,\ell}\rightarrow\infty$ uniformly in $\ell$.
+
+To show this, we express $L$ in terms of 
+Kullback-Leibler divergences, $D(h^*_\ell||\tilde h^*_\ell)$ and entropies 
+$\mathcal H(h^*_\ell)$.  Applying Pinsker's inequality, we obtain
+%
+\begin{align*}
+L(\tilde q^*,p^*,h^*) &= \sum_\ell N_{y,\ell} (\mathcal H(h^*_\ell) - D(h^*_\ell||\tilde h^*_\ell)) + \kappa \sum_{xy} \log q^*(y|x)\\
+&\leq \sum_\ell N_{y,\ell} (\mathcal H(h^*_\ell) - 2|h^*_\ell-\tilde h^*_\ell|^2_{TV} + \kappa \sum_{xy} \log q^*(y|x)\\
+&\leq \sum_\ell N_{y,\ell} (\mathcal H(h^*_\ell) - \frac{1}{2}(\sup_y |h^*(y|\ell)-\tilde h^*(y|\ell)|)^2 + \kappa \sum_{xy} \log q^*(y|x)\\
+\end{align*}
+
+Since $\tilde q^*,\tilde h^*$ are found by taking $L$ as large as possible, it would thus seem that we could use
+this inequality to argue that $h^* \approx \tilde h^*$ when $N_{Y,\ell}$ are large.  There is, however, once again 
+a bit of trickiness in the case that $q^*(y|x)=0$ for some $x,y$.  Indeed, it may be that $L(q^*,p^*,h^*)=-\infty$,
+and this complicates some of the arguments that we want to make.   To remedy this, we first design a smoothed
+version of $q^*$.  Then everything goes through as we might like.  Let's do it rigorously.
+
+Fix $0<\epsilon<1$. We take
+$q^*_{SM}= (1-\epsilon) q^* + \epsilon \tilde q^*$ as our smoothed version of $q^*$.  
+The convexity of the KL divergence then gives that
+%
+\begin{align*}
+D(h^* || p^*q^*_{SM})&=D(h^*_{\ell} || (1-\epsilon) h^*_{\ell} + \epsilon \tilde h^*) \leq (1-\epsilon)0 + \epsilon D(h^*_{\ell} || \tilde h^*) 
+\end{align*}
+%
+Thus, applying Pinsker (and the fact that $\tilde q^* = \argmax _q L_N(\tilde q,p^*,h^*)$)
+%
+\begin{align*}
+0 &\leq L_N(\tilde q^*,p^*,h^*) - L_N(q^*_{SM},p^*,h^*)\\
+ &= \sum_\ell N_{y,\ell} (\epsilon-1) D(h^*_\ell||\tilde h^*_\ell)+ \kappa \sum_{xy} \log \frac{\tilde q^*(y|x)}{q^*_{SM}(y|x)}\\
+&\leq \sum_\ell N_{y,\ell} (\epsilon-1) D(h^*_\ell||\tilde h^*_\ell)- \kappa |\Omega_X||\Omega_Y|\log \epsilon \\
+&\leq \sum_\ell N_{y,\ell} (\epsilon-1) 2|h^*_\ell-\tilde h^*_\ell|^2_{TV}- \kappa |\Omega_X||\Omega_Y|\log \epsilon \\
+&\leq \frac{\epsilon-1}{2}\sum_\ell N_{y,\ell} \left(\sup_y|h^*(y|\ell)-\tilde h^*(y|\ell)|\right)^2-\kappa |\Omega_X||\Omega_Y|\log \epsilon \\
+\end{align*}
+%
+One consequence of that inequality is that 
+%
+\begin{align*}
+\sup_y|h^*(y|\ell)-\tilde h^*(y|\ell)| &\leq \sqrt{\frac{-2\kappa |\Omega_X||\Omega_Y|\log \epsilon}{N_{Y,\ell}} } \\
+\end{align*}
+%
+With this inequality in hand, we are now prepard to prove that $\tilde h^* \rightarrow h^*$.  Pick any $0<\delta<1$.  
+Choose $N_{\ell,y}>-2\kappa |\Omega_X||\Omega_Y|\log \delta/\delta$.  Take $\epsilon=\delta$.  Then
+%
+\begin{align*}
+\sup_y|h^*(y|\ell)-\tilde h^*(y|\ell)| &\leq \sqrt{\delta} \\
+\end{align*}
+
+\item We now show that if $\tilde h^*\approx h^*$, then $\tilde u_1^* \approx u_1^*$.  To do so, let
+%
+\[
+\tilde \Theta^* = \left\{q: \sum_x p^*(x|\ell)q(y|x)=\sum_x p^*(x|\ell)\tilde q^*(y|x) = \tilde h^*(y|\ell)\right\} 
+\]
+%
+To complete our proof, it then suffices to show that we can find $\tilde h^*$ close enough to $h^*$ so that
+we can find a $q \in \tilde \Theta^*$ with $q \approx q^*$.
+
+\end{enumerate}
+
+\end{proof}
+
+Then certainly $u_1^*(y|x) \leq q(y|x)\leq u_2^*(y|x)$.  What's more, we can 
+
+\bibliographystyle{unsrt}
+\bibliography{refs}
+
+\end{document}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

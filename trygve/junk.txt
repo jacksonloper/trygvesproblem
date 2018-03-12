@@ -1,0 +1,354 @@
+
+\begin{proof}
+
+The logic is in perfect symmetry for $u_1,u_2$, so we focus on the $u_1$ case.
+
+We begin by seeing how our process would have worked if we were able to know the exact values of $p^*$ and $h^*$,
+instead of the empirical distributions $\hat p,\hat h$.  That is, we define
+%
+\begin{align*}
+L_N(q,p,h) &\triangleq \sum_\ell N_{Y,\ell}\sum_{y}h(y|\ell)\log\left(\sum_{x}p(x|\ell)q(y|x)\right) + \kappa \sum_{xy} \log q(y|x) \\
+\Theta(p,\tilde q) &\triangleq\left\{q:\ \sum_x p(x|\ell) \tilde q(y|x) =\sum_x p(x|\ell) q(y|x), \forall \ell,y\right\}
+\end{align*}
+%
+and take
+%
+\begin{align*}
+\tilde q^* &= \argmax_q L_N(q,p^*,h^*)  \\
+\tilde u_1^*(y|x) &= \inf_{q\in \Theta(p^*,\tilde q^*)} q(y|x) \\
+\end{align*}
+%
+Our first task is to show that the map $p^*,h^* \mapsto \tilde u_1^*$ is continuous.  This follows in two steps:
+
+%%%%% two steps
+\begin{enumerate}
+% STEP I
+\item The map $p^*,h^* \mapsto \argmax_q L(q,p^*,h^*)$ is continuous.  Note that $q\mapsto L(q,p^*,h^*)$
+is \emph{uniformly} strictly concave for all $p^*,h^*$.  Indeed, the hessian is given by
+%
+\begin{align*}
+\frac{\partial L_N(q,p^*,h^*)}{\partial q(x_1,y_1) \partial q(x_2,y_2)} =& 
+    - \delta_{y_1=y_2}\sum_\ell N_{Y,\ell} h^*(y_1|\ell) 
+              \frac{p^*(x_1|\ell)p^*(x_2|\ell)}{\left(\sum_x p(x|\ell) q(y_1|x)\right)^2} \\
+    & \qquad - 2\kappa \delta_{(x_1,y_1)=(x_2,y_2)} \\
+\end{align*}
+%
+Since $q$ lives in a compact space and $L$ is continuous with respect to $p^*,h^*$, we thus 
+know that $p^*,h^* \mapsto \argmax_q L_N(q,p^*,h^*)$ is also continuous.  
+% STEP II
+\item The map $p,\tilde q \mapsto \inf_{q\in\Theta(p,\tilde q)} q(y|x)$ is continuous, as long as 
+$\{(p(x_1|\ell)\cdots p(x_n|\ell))\}_\ell$ are linearly independent (remember we have assumed the independence). 
+It would suffice to show the following: 
+for any fixed $p_1 \approx p_2,\tilde q_1 \approx \tilde q_2,x,y$ where the $\approx$ is sufficiently tight
+and $q_1\in \Theta(p_1,\tilde q_1)$, 
+we can find $q_2\in \Theta(p_2,\tilde q_2)$ with $q_1(y|x)\approx q_2(y|x)$.  We will solve
+this problem first by looking at what happens if $\tilde q$ changes, and then at what happens if $p$ changes.
+\begin{itemize}
+\item Let us say $p_1=p_2=p$.  Then, in the absence of constraints, we could solve
+our problem by simply taking $q_2 = q_1 + \tilde q_2 - \tilde q_1$.
+However, if $q_1(y|x)=0$ for any $x,y$, we cannot guarantee that the resulting $q_2$ will be a positive measure. 
+To resolve this, we note that the entropic penalty ensures that $\tilde q_2,\tilde q_1$ lie on the interior
+of the probability simplex.  This enables us to resolve the issue by constructing ``smoothed'' version of $q_1$, namely
+$(1-\alpha) q_1 + \alpha (\tilde q_1)$ which also lies on the interior of the probability simplex.   Let's do this
+rigorously.
+
+Fix any $\tilde q_1,\delta>0$ and $q_1 \in \Theta(p,\tilde q_1)$. Let $c = \min_{x,y} \tilde q_1(y|x)$.  Now pick any $\tilde q_2$ such that $|\tilde q_2-\tilde q_1|< \delta c/2$ in the uniform norm.  Take $q_2 = (1-\delta)q_1 + \delta \tilde q_1 + \tilde q_2 - \tilde q_1$.  Observe that $q_2 (y|x) \geq \delta c - \delta c/2$ for every $x,y$, i.e. it is a valid
+probability density.  Note also that $q_2 \in \Theta(p, \tilde q_2)$.  Finally, note that $|q_2 - q_1|<\delta$ in
+the uniform norm, as desired. 
+
+\item Let us now say $\tilde q_1 = \tilde q_2 = \tilde q$.  We are given $q_1,p_1,p_2$ and asked to
+produce $q_2\in \Theta(p_2,\tilde q)$ such that $q_1\approx q_2$.  Let 
+$A_{1,\ell,x} = p_1^*(x|\ell)$ and $A_{2,\ell,x} = p_2^*(x|\ell)$.  We have assumed that the rows of $A_1$ are linearly independent, so $A_1 A_1^T$ is invertible.  There is therefore an open set around $A_1$ so that as long as $A_2 \approx A_1$ we have that the rows of $A_2$ are also linearly independent.  Therefore to find $q_2 \in \Theta(p_2, \tilde q)$
+we can simply take $q_2 = q_1 - A_2^T (A_2 A_2^T)^{-1} A_2 (q_1 -\tilde q)$.  Note that $A_1 (q_1 - \tilde q) =0$, so
+the norm of $A_2 (q_1 -\tilde q)$ can be bounded.  Likewise the strength of $(A_2 A_2^T)^{-1}$
+can be bounded by the smallest absolute eigenvalue of $A_2$, which, in turn, is bounded by its proximity to $A_1$.  
+Finally, the entries of $A_2^T$ are uniformly bounded between zero and one.  In conclusion, 
+for any $p_1$ we can always find a $p_2$ close enough so that we can completely control $|q_1-q_2|$ in the Euclidean
+norm.  Since we are working in finite dimensions, this is sufficient to control it in the uniform norm.  
+
+Finally, we note that it is possible this method will result in $q_2$ being an invalid probability distribution, i.e.
+$q_2(y|x)<0$.  This could be true in two senses.  First, it might be that $\sum_y q_2(y|x)\neq 1$.  Fortunately,
+this is impossible.  Indeed, $(q_1 - \tilde q)1 =0$ so certainly $(q_2-q_1)1=(\cdots)(q_1-\tilde q)1=0$ as well.   
+Second, we might have that $q_2(y|x)<0$.  To remedy this
+second point, we take recourse to the same method explained in detail for the case $p_1=p_2$ above. 
+That is, we work with a slightly ``smoothed'' version of $q_1$, and find something which is very close to the smoothed version,
+and thereby ensure that the resulting $q_2$ is valid.  This $q_2$ is close to the slightly smoothed $q_1$ and thus also
+close to $q_1$.
+
+\end{itemize}
+
+\end{enumerate}
+
+It is well-known that the empirical distributions $\hat p, \hat h$ converge uniformly in probability to the true values, $p^*,h^*$.  Since the map $p,q \rightarrow u_1$ is continuous in a neighborhood of $p^*,q^*$, it follows that $\hat u_1$ also converge uniformly to $\tilde u_1^*$ in probability.
+
+It thus suffices to show that $\tilde u_1^* \rightarrow u_1^*$.  To show this, let $\tilde h^* =p^*\tilde q^*$,
+i.e. $h^*(y|\ell)=\sum_x p^*(x|\ell)\tilde q^*(y|x)$.  The key will be to control $\tilde h^*$ and see how that control
+enables us to control $\tilde u^*$.
+
+\begin{enumerate}
+\item $\tilde h^* \rightarrow h^*$ in the uniform norm as 
+$N_{Y,\ell}\rightarrow\infty$ uniformly in $\ell$.
+
+To show this, we express $L$ in terms of 
+Kullback-Leibler divergences, $D(h^*_\ell||\tilde h^*_\ell)$ and entropies 
+$\mathcal H(h^*_\ell)$.  Applying Pinsker's inequality, we obtain
+%
+\begin{align*}
+L(\tilde q^*,p^*,h^*) &= \sum_\ell N_{y,\ell} (\mathcal H(h^*_\ell) - D(h^*_\ell||\tilde h^*_\ell)) + \kappa \sum_{xy} \log q^*(y|x)\\
+&\leq \sum_\ell N_{y,\ell} (\mathcal H(h^*_\ell) - 2|h^*_\ell-\tilde h^*_\ell|^2_{TV} + \kappa \sum_{xy} \log q^*(y|x)\\
+&\leq \sum_\ell N_{y,\ell} (\mathcal H(h^*_\ell) - \frac{1}{2}(\sup_y |h^*(y|\ell)-\tilde h^*(y|\ell)|)^2 + \kappa \sum_{xy} \log q^*(y|x)\\
+\end{align*}
+
+Since $\tilde q^*,\tilde h^*$ are found by taking $L$ as large as possible, it would thus seem that we could use
+this inequality to argue that $h^* \approx \tilde h^*$ when $N_{Y,\ell}$ are large.  There is, however, once again 
+a bit of trickiness in the case that $q^*(y|x)=0$ for some $x,y$.  Indeed, it may be that $L(q^*,p^*,h^*)=-\infty$,
+and this complicates some of the arguments that we want to make.   To remedy this, we first design a smoothed
+version of $q^*$.  Then everything goes through as we might like.  Let's do it rigorously.
+
+Fix $0<\epsilon<1$. We take
+$q^*_{SM}= (1-\epsilon) q^* + \epsilon \tilde q^*$ as our smoothed version of $q^*$.  
+The convexity of the KL divergence then gives that
+%
+\begin{align*}
+D(h^* || p^*q^*_{SM})&=D(h^*_{\ell} || (1-\epsilon) h^*_{\ell} + \epsilon \tilde h^*) \leq (1-\epsilon)0 + \epsilon D(h^*_{\ell} || \tilde h^*) 
+\end{align*}
+%
+Thus, applying Pinsker (and the fact that $\tilde q^* = \argmax _q L_N(\tilde q,p^*,h^*)$)
+%
+\begin{align*}
+0 &\leq L_N(\tilde q^*,p^*,h^*) - L_N(q^*_{SM},p^*,h^*)\\
+ &= \sum_\ell N_{y,\ell} (\epsilon-1) D(h^*_\ell||\tilde h^*_\ell)+ \kappa \sum_{xy} \log \frac{\tilde q^*(y|x)}{q^*_{SM}(y|x)}\\
+&\leq \sum_\ell N_{y,\ell} (\epsilon-1) D(h^*_\ell||\tilde h^*_\ell)- \kappa |\Omega_X||\Omega_Y|\log \epsilon \\
+&\leq \sum_\ell N_{y,\ell} (\epsilon-1) 2|h^*_\ell-\tilde h^*_\ell|^2_{TV}- \kappa |\Omega_X||\Omega_Y|\log \epsilon \\
+&\leq \frac{\epsilon-1}{2}\sum_\ell N_{y,\ell} \left(\sup_y|h^*(y|\ell)-\tilde h^*(y|\ell)|\right)^2-\kappa |\Omega_X||\Omega_Y|\log \epsilon \\
+\end{align*}
+%
+One consequence of that inequality is that 
+%
+\begin{align*}
+\sup_y|h^*(y|\ell)-\tilde h^*(y|\ell)| &\leq \sqrt{\frac{-2\kappa |\Omega_X||\Omega_Y|\log \epsilon}{N_{Y,\ell}} } \\
+\end{align*}
+%
+With this inequality in hand, we are now prepard to prove that $\tilde h^* \rightarrow h^*$.  Pick any $0<\delta<1$.  
+Choose $N_{\ell,y}>-2\kappa |\Omega_X||\Omega_Y|\log \delta/\delta$.  Take $\epsilon=\delta$.  Then
+%
+\begin{align*}
+\sup_y|h^*(y|\ell)-\tilde h^*(y|\ell)| &\leq \sqrt{\delta} \\
+\end{align*}
+
+\item We now show that if $\tilde h^*\approx h^*$, then $\tilde u_1^* \approx u_1^*$.  To do so, let
+%
+\[
+\tilde \Theta^* = \left\{q: \sum_x p^*(x|\ell)q(y|x)=\sum_x p^*(x|\ell)\tilde q^*(y|x) = \tilde h^*(y|\ell)\right\} 
+\]
+%
+To complete our proof, it then suffices to show that we can find $\tilde h^*$ close enough to $h^*$ so that
+we can find a $q \in \tilde \Theta^*$ with $q \approx q^*$.
+
+\end{enumerate}
+
+\end{proof}
+
+Then certainly $u_1^*(y|x) \leq q(y|x)\leq u_2^*(y|x)$.  What's more, we can 
+
+\subsection{First formulation}
+
+Mathematically, the most direct way to formulate our problem is as follows:
+
+\begin{itemize}
+\item Let us say we have $n+m$ individual members of a population.  These could be cells, humans, or whatever
+the smallest sample unit may be for a given problem.
+\item Let us say that for the first $n$ members, we have observed them using the first technique.  This gives us
+the values $X_1 \cdots X_n$.
+\item Let us say that the last $m$ members were observed using the second technique.  This gives us the values
+$Y_{n+1} \cdots Y_{n+m}$.
+\end{itemize}
+
+We further posit a set of \emph{counterfactual} variables -- variables which could not ever be obtained in practice,
+but which help us organize our thinking.  
+
+\begin{itemize}
+\item Let $Y_1 \cdots Y_n$ denote the observations we \emph{would have gotten} if we had applied the second technique
+to the first $n$ members.
+\item Let $X_{n+1} \cdots X_n$ denote the observations we would have gotten if we had applied the first technique
+to the last $m$ members. 
+\end{itemize}
+
+We assume that the distribution of $(X_i,Y_i)_i$ are drawn independently and identically from some distribution $p(x,y)$. 
+Importantly, this implies that there is no dependency between the \emph{nature} of each member and 
+\emph{which observation technique} we used to measure that member.  
+
+In these terms, our task is to somehow use the observations we have, $X_1 \cdots X_n,Y_{n_1}\cdots Y_{n+m}$,
+to learn something about the joint distribution $p(x,y)$.  This joint distribution would enable us to understand
+how the two measurements relate to each other, allowing us to give at least a partial answer to questions like "what might
+this have looked like if they used the other measurement technique?"  
+
+Unfortunately, this problem looks just too hard.  There is simply nothing we can use to link $X,Y$ together.  So we are going to solve a slightly different problem.
+
+\subsection{Second formulation}
+
+Let us say that there is a third variable for each member, $\ell_i$, which can serve as a link between $X_i$ and $Y_i$.  We assume that this variable can be easily measured in exactly the same way, regardless of which measurement technique we use.  For example, $\ell_i$ might indicate which mouse a cell came from, or the gene-line of the mouse, or the part of the body the cell was gathered from.  We do not consider this variable to be random, insofar as we will condition everything on its
+observed value.  Finally, we make a very strong assumption:
+
+\begin{quote}
+The relationship between $X$ and $Y$ is the same for every value of $\ell$.
+\end{quote}
+
+We formalize this mathematically by asserting that each $(X_i,Y_i)$ is drawn independently from some distribution
+of the form $p(x_i|\ell_i)p(y_i|x_i)$.  In some ways, this is weaker than the assumption in the previous section.  Before, we assumed that there is no dependency between the nature of the member and which observation technique we used.  Now, we allow
+that we might choose different measurement techniques based on the value of $\ell$.  However, in other ways, it is much
+stronger than our previous assumption, insofar as we assume that $p(y_i|x_i)$ does not depend upon the value of $\ell$.
+
+The validity of this assumption for a given situation should be closely contemplated.  There are several key questions to answer
+when deciding whether this assumption is applicable.  Does the process by which samples are gathered
+gathered depend only upon $\ell$?  In particular, is it not at all statistically related to which measurement technique was 
+applied, except through $\ell$?  Are the
+particular measurement biases of both techniques the same for every value of $\ell$?  Is the statistical relationship 
+between the quantities being measured by the two techniques the same for every value of $\ell$?\footnote{Note that this is 
+automatically true if both techniques are measuring the same thing.  More generally, if two techniques have something that
+they both measure, we can restrict attention to that one common phenomenon.}  If the answer to all of these questions is yes, the assumption that $(X_i,Y_i)$ is drawn from $p(x_i|\ell_i)p(y_i|x_i)$ may apply.
+
+The assumption may be quite powerful.  Although it will not generally allow us to learn the full joint distribution of $p(y|x)$,
+it may allow us to place bounds on what this distribution could look like.  This is particularly true
+if we assume a parametric form for our model.  This leads us to our third and final formulation, which will be stated in full
+rigor:
+
+\subsection{Final formulation}
+
+We will consider the case that the sample spaces are finite.  An extension
+to the general case would be of great interest, and we leave it to future work.  
+
+\begin{itemize}
+\item $\Theta_1,\Theta_2$ denote metric spaces of parameters, and $\theta_1^*\in\Theta_1,\theta_2^*\in\Theta_2$
+\item $\ell_1 \cdots \ell_{n+m}$ denote fixed values in some finite space $\Omega_L$
+\item $X_i\in \Omega_X$ and $Y_i \in \Omega_Y$ denote random variables in finite spaces, governed by the discrete measure
+$$p(x_i;\theta^*_1,\ell_i)q(y_i|x_i;\theta^*_2)$$ 
+\item Let us say that $Y_1\cdots Y_n$ and $X_{n+1}\cdots X_{n+m}$ cannot be observed.
+\end{itemize}
+
+Consider the null hypothesis
+
+\begin{equation}\label{eq:h0}
+H_0:\ \theta_1^*,\theta_2^* \in S 
+\end{equation}
+
+for some $S\subset \Theta_1 \times \Theta_2$.  How can we rigorously test such a hypothesis?
+
+If we could rigorously test such a hypothesis, this would enable us to test arbitrary aspects of the joint
+distribution, construct useful bounds, and understand the joint distribution as best as we can given the
+information we have.  We will give a concrete example momentarily.  For the moment, let us see how
+such a test could be performed.
+
+\section{Our algorithm}
+
+Having rigorously stated the problem as a hypothesis test, in \Cref{eq:h0}, a simple bootstrap solution follows immediately.
+The only sublety is that since $\theta_1,\theta_2$ are unlikely to be identifiable, we are forced
+to look at the equivalence classes of $\theta_1,\theta_2$ which would give rise to the same distributions
+on what we have actually observed.
+
+\begin{enumerate}
+\item Let $(\ell^{(1)},X^{(1)},Y^{(1)}) \cdots (\ell^{(M)},X^{(M)},Y^{(M)})$ denote $M$ surrogate datasets,
+generated by sampling with replacement within each tool stratification.  That is, we resample $(\ell_1,X_1)\cdots (\ell_n,X_n)$ 
+with replacement and $(\ell_{n+1},Y_{n+1})\cdots (\ell_{n+1}\cdots Y_{n+m})$ with replacement.  
+\item Let $\hat\theta_1^{(b)},\hat\theta_2^{(b)} \in \arg\max_{\theta_1,\theta_2} \prod_{i=0}^n p(X_i^{(b)};\theta_1,\ell_i^{(b)}) \prod_{i=0}^{n+m} \sum_x q(Y_i^{(b)}|x,\theta_2)p(x;\theta_1,\ell_i^{(b)})$ for each surrogate dataset
+\item Let $T^{(b)} = \{\theta_2:\ \sum_x q(y|x,\theta_2)p(x;\hat\theta_1^{(b)},\ell) = \sum_x q(y|x,\hat\theta_2^{(b)})p(x;\hat\theta_1^{(b)},\ell) \}$
+\item Let $p$ denote the proportion of surrogate datasets $b$ for which $\theta_1^{(b)}\times T^{(b)} \cap S \neq \emptyset$
+\item Reject the hypothesis $H_0$ at the $1-\alpha$ level if $p<\alpha$ 
+\end{enumerate}
+
+This algorithm is likely to be conservative, since we are forced to deal with equivalence classes.  However, we do
+have clearer guarantees of type I error: \vspace{.2in}
+
+\begin{thm}
+In the asymptotic limit as $\#\{i\leq n:\ \ell_i=\ell\},\#\{i> n:\ \ell_i=\ell\} \rightarrow \infty$ uniformly in $\ell$, the probability of type I error is conservative.
+\end{thm}
+\begin{proof}
+
+???
+
+\end{proof}
+
+
+\section{Mathematical solution}
+
+To produce useful bounds on $q(y|x)$, we need to be a little bit careful.  Our first step is to 
+define $\Theta(p,q)$.  This will help us think about what distributions are 
+ are consistent with $p,q$ in terms of what they say about $\mathbb{P}(Y=y|L=\ell)$. In particular, we take
+
+\begin{equation}
+\Theta(p,q)\triangleq\left\{\tilde{q}:\ \sum_x p(x|\ell)q(y|x)=\sum_x p(x|\ell)\tilde{q}(y|x), \forall \ell,y\right\}
+\end{equation}
+
+It is necessary to consider this somewhat abstract-looking set because it will generally be impossible to
+learn the exact values of $q^*$ from data.  Instead, all we can do is learn $p^*$ and $\Theta(p^*,q^*)$.  This
+is a result of the fact that we never observe both kinds of observational techniques applied to the same
+individuals.  
+
+We can now define the upper and lower bounds of interest: 
+
+\begin{align*}
+u_1^*(y|x) &= \inf_{q\in\Theta(p^*,q^*)} \{q(y|x)\} \\
+u_2^*(y|x) &= \sup_{q\in\Theta(p^*,q^*)} \{q(y|x)\}
+\end{align*}
+
+Although it may not be possible to determine $q^*$ from data, the quantities $u_1^*,u_2^*$ are identifiable.
+Indeed, we can get at them from the data we have, using the following simple estimator:
+
+\begin{align*}
+\hat p,\hat q &\in \argmax_{p,q} \left(\prod_{i=1}^{n} p(x_i|\ell_i) \prod_{i=n+1}^{n+m} \sum_x p(x|\ell_i)q(y_i|x)\right) \\
+\hat u_1(y|x) &= \inf_{q\in\Theta(\hat p,\hat q)} \{q(y|x)\} \\
+\hat u_2(y|x) &= \sup_{q\in\Theta(\hat p,\hat q)} \{q(y|x)\}
+\end{align*}
+
+\begin{thm}
+$\hat u_1$ and $\hat u_2$ are asymptotically consistent estimators for $u_1^*$ and $u_2^*$, in the limit as 
+$N_{X,\ell}=\#\{i\leq n:\ \ell_i=\ell\},N_{Y,\ell}=\#\{i> n:\ \ell_i=\ell\} \rightarrow \infty$ uniformly in $\ell$.
+\end{thm}
+
+\begin{proof}
+The key point is that we cannot hope that $\hat p,\hat q$ is a consistent estimator for $p^*,q^*$, because
+these quantities may not be identifiable.  Instead, we need some weaker notion of consistency.  To this end,
+we define a divergence $d(p_1,q_1;p_2,q_2)$ by looking at several Kullback-Leibler divergences:
+
+\begin{align*}
+d_{X,\ell}(p_1,q_1;p_2,q_2) \triangleq&  \sum_x p_1(x|\ell) \log \frac{p_1(x|\ell)}{p_2(x|\ell)} \\
+d_{Y,\ell}(p_1,q_1;p_2,q_2) \triangleq&  \sum_y \left(\sum_x p_1(x|\ell)q_1(y|x)\right) \log \frac{\sum_x p_1(x|\ell)q_1(y|x)}{\sum_x p_2(x|\ell)q_2(y|x)} \\
+d(p_1,q_1;p_2,q_2) \triangleq& \sum_\ell d_{X,\ell}(p_1,q_1;p_2,q_2)+d_{Y,\ell}(p_1,q_1;p_2,q_2) 
+\end{align*}
+
+and hope to show that 
+
+\begin{equation}
+\mathbb P(d(p^*,q^*;\hat p,\hat q) > \epsilon) \rightarrow 0
+\end{equation}
+
+in the asymptotic limit.  To see why, consider the terms which go into the estimate for $\hat p,\hat q$.  
+Specifically, take stock of 
+
+\begin{align*}
+L_X(p,\ell)\triangleq& \frac{1}{N_{X,\ell}}\sum_{i\leq n:\ \ell_i=\ell}\log p(x_i|\ell)  \\
+L_Y(p,\ell)\triangleq& \frac{1}{N_{X,\ell}}\sum_{i>n:\ \ell_i=\ell}^{n} \log \sum_x p(x|\ell_i)q(y_i|\ell)  \\
+\end{align*}
+
+These are clearly unbiased estimators for $\E_{p^*} [\log p(X|\ell)|\ell]$ and $\E_{p^*,q^*} [\log \sum_x p(x|\ell_i)q(Y|\ell)|\ell]$ respectively.  What's more, the variance of these estimators can be controlled:
+
+\begin{align*}
+\Var_{q^*}(\log p(X|\ell)|\ell)) =
+
+To see this, first note that $L$ 
+is itself continuous and differentiable.  Moreover, the constraints on $q$ are all affine.  Thus the Karush-Kuhn-Tucker 
+conditions are automatically fulfilled and so we know that any solution of $\argmax_q L(q,p^*,h^*)$ must satisfy
+
+\begin{align*}
+2\epsilon q(y|x) &= \sum_\ell N_{Y,\ell} h^*(y|\ell) \frac{p^*(x|\ell)}{\sum_{x'} p^*(x'|\ell) q(y|x')} 
+                    + \lambda_x + \gamma_{xy} 
+                    \qquad \forall x,y \\
+\sum_y q(y|x) &= 0 \qquad \forall x \\
+q(y|x) &\geq 0 \qquad \forall x,y
+\end{align*}
+
+where $\lambda_x,\gamma_{xy}$ are langrange multipliers enforcing the constraints of the second two equations.  
+
+
+\sidenote{Do I need to cite references for this?  I also have a proof for it, but it is a little involved.
+I assume this is standard fare..?} 
