@@ -18,8 +18,8 @@
 \maketitle
 
 \begin{description}
-  \item[Status] Succesfully trained the new ``iterative model,'' looked at it
-  \item[Todo] Compare clusters against Allen, compare held-out log likeloohd
+  \item[Status] Succesfully trained the new ``iterative model,'' evaluated it to some extent
+  \item[Todo] Compare clusters against Allen, try unamortized inference
 \end{description}
 
 \section{Overview}
@@ -42,6 +42,8 @@ Unfortunately, it is a bit difficult to grasp the uncertainty involved in the pr
 
 We propose to help clarify some of these issues by building a fully generative model of gene expression, one that rigorously measures some kinds of uncertainty in every step of the process.  To be most useful to the Allen Institute, however, we also want this generative model to fit into the scientific paradigm under which they are operating.  In particular, the treatment of clusters should be hierarchical in nature, and it is desirable that the model have latent representations that roughly correspond to the low-dimensional representations found in the Allen algorithm.  
 
+\section{Model}
+
 Towards this end, we propose the following generative model for gene expression of a single cell.  Let $H$ denote a tree of cell types.   
 
 \begin{enumerate}
@@ -51,7 +53,7 @@ Towards this end, we propose the following generative model for gene expression 
 \[
 \lambda_g = f_g \left(\sum_{i=0}^{\ell} h_{T_i}Z_{T_i}\right)
 \]
-\item Conditioned on $Z$, the  $g$th gene of the cell be distributed according to some $p(x_g ; \lambda_g)$.
+\item Conditioned on $Z$, the  $g$th gene of the cell be distributed according to some $p(x_g ; \lambda_g)$. 
 \end{enumerate}
 
 Let us unpack some of this:
@@ -63,9 +65,11 @@ Let us unpack some of this:
 \item The functions $h_{T_i}$ indicates how these cell-type-specific features alter the distribution on the gene expressions for cells in that branch of the tree.  
 \end{itemize}
 
+For inference, we use amortized variational inference.  In particular, we take the variational family that $T$ and all the $Z_{T_i}$ are independent, $T$ is some categorical, and $Z$s are isotropic gaussians.  We build a neural network to estimate the variational parameters from gene expressions.  Note that this network must estimate the parameters for a gaussian at \emph{each node} in the tree $H$.
+
 \section{Empirical results}
 
-At the current moment, we have only actually implemented this model in the case the $H$ is a tree with depth 1, i.e. the hierarchy is trivial.  We use amortized variational methods for training and inference.  It looks fairly promising.  For a simple qualitative assessment, consider the following.
+At the current moment, we have only actually implemented this model in the case the $H$ is a tree with depth 1, i.e. the hierarchy is trivial.   We take the data model to be a zero-inflated negative binomial.  It looks fairly promising.  For a simple qualitative assessment, consider the following.
 
 Scatterplot of the aggregate posterior distribution of $Z_{T_0}$, colored by posterior mean of the cluster assigment:
 
@@ -74,6 +78,42 @@ Scatterplot of the aggregate posterior distribution of $Z_{T_0}$, colored by pos
 Notice that there are only so many clusters that are really clearly distinct in this latent space.  However, let's focus on that cluster on the right-hand side.  What happens if we look at the $Z_{T_1}$ variables for those cells?  We get substantial subclustering apparent in the $Z_{T_2}$ space:
 
 \includegraphics[width=0.4\textwidth]{pics/Z2}
+
+\subsection{Held out log likelihood}
+
+To quantitatively analyse our method, we used a held out log likelihood:
+
+\begin{itemize}
+\item Train the method on 75\% of the cells
+\item For each of the remaining 25\% of the cells, select 75\% of the genes (``observed''):
+  \begin{itemize}
+  \item Compute the posterior mode of Z given the expression of those genes
+  \item Compute the log probability of the observed genes given the posterior mode
+  \item Compute the log probability of the unobserved genes given the posterior mode
+  \end{itemize}
+\item Average values over those 25\% of the cells
+\end{itemize}
+
+Here are the results for this ``Posterior mode predictive (PMP)'' approach:
+
+\begin{tabular}{r|cc}
+Method & PMP, observed & PMP, unobserved \\
+Factor analysis $k=16$ & -4.2 & -4.2 \\
+Factor analysis $k=64$ & -4.1 & -4.3 \\
+HNBPF $k=2$ & -5.7 & -5.7 \\
+HNBPF $k=16$ & -3.8 & -3.9 \\
+HNBPF $k=64$ & -3.8 & -5.7 \\
+ZINB-Vae $k=2$ & -3.6 & -3.6 \\
+Smooth ZINB-Vae $k=2$ & -3.6 & -3.6 \\
+Smooth Hierarchical ZINB $k=2+2$ & -3.5 & -3.5 \\
+\hline
+\end{tabular}
+
+Here HNBPF is a negative-binomial-poisson-factorization approach, ZINB-Vae is based on a Michael Jordan paper, $k$ is the number of latent dimensions.  The results are certainly not mind-blowing, but its nice to see that we're at least heading in a reasonable direction.  There may be an upper limit on the PMP, due to very real technical noise in the system, so it is hard to evaluate whether this is a trivial improvement or not.
+
+To arrive at our figures for our model, we use a truly ridiculous method of variational inference.  In particular, we simply \emph{zero out} all of the ``unobserved'' entries, and apply our inference network unchanged to get estimates for the variational parameters.  This is not ``cheating'' in the sense that it is a practical method for imputation in the case where certain genes are unobserved.  However, it might well do less than optimally.  I was talking to Scott, and it sounds like the question of amortized inference with unpredictably missing data is a big deal right now.  Worth thinking about more.  
+
+\subsection{Denoising}
 
 % \bibliographystyle{unsrt}
 % \bibliography{refs}
