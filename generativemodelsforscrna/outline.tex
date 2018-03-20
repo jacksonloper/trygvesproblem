@@ -19,7 +19,7 @@
 
 \begin{description}
   \item[Status] Succesfully trained the new ``iterative model,'' evaluated it to some extent
-  \item[Todo] Compare clusters against Allen, try unamortized inference
+  \item[Todo] Compare clusters against Allen, consider linear model, do more layers
 \end{description}
 
 \section{Overview}
@@ -109,11 +109,25 @@ Smooth Hierarchical ZINB $k=2+2$ & -3.5 & -3.5 \\
 \hline
 \end{tabular}
 
-Here HNBPF is a negative-binomial-poisson-factorization approach, ZINB-Vae is based on a Michael Jordan paper, $k$ is the number of latent dimensions.  The results are certainly not mind-blowing, but its nice to see that we're at least heading in a reasonable direction.  There may be an upper limit on the PMP, due to very real technical noise in the system, so it is hard to evaluate whether this is a trivial improvement or not.
+Here HNBPF is a negative-binomial-poisson-factorization approach, ZINB-Vae is based on a Michael Jordan paper, $k$ is the number of latent dimensions.  The results are certainly not mind-blowing, but its nice to see that we're at least not doing worse.  
 
-To arrive at our figures for our model, we use a truly ridiculous method of variational inference.  In particular, we simply \emph{zero out} all of the ``unobserved'' entries, and apply our inference network unchanged to get estimates for the variational parameters.  This is not ``cheating'' in the sense that it is a practical method for imputation in the case where certain genes are unobserved.  However, it might well do less than optimally.  I was talking to Scott, and it sounds like the question of amortized inference with unpredictably missing data is a big deal right now.  Worth thinking about more.  
+To do posterior inference on held out likelihood, our approach is to first set all of the ``unobserved'' entries to the average value for the corresponding genes, and apply our inference network unchanged to get estimates for the variational parameters.  We then refine these estimates with gradient descent.  We note that if we use completely random guesses to initialize the gradient descent, we often converge to inferior local minima; this shows the benefit of the amortized inference.  
 
-\subsection{Denoising}
+\subsection{Posterior predictive samples}
+
+One limitation of the method as we have implemented it is that the posterior predictive distribution seems to be substantially underfitting.  To see what we mean, consider the following figure:
+
+\includegraphics[width=0.8\textwidth]{pics/Z1gn}
+
+Here we four rows and three columns of plots.  Each row corresponds to a different gene.  Each dot in each plot corresponds to a cell.  The position of the dot indicates the latent representation of the cell, as inferred by posterior inference.  The color indicates the amount of expression for the particular gene for that cell, measured three ways:
+
+\begin{enumerate}
+\item The first column shows the true expression of the appropriate gene for each cell (i.e the color of each dot is the gene expression for that cell)
+\item The second column shows a posterior predictive sample of the gene expression for each cell
+\item The third column shows the mean of such samples for each cell
+\end{enumerate}
+
+We see that the true expression doesn't look much like the posterior predictive expression for the Vip and Sst genes.  Something better is needed.  Possibly more layers.  Possibly more training.  Worth thinking about.
 
 % \bibliographystyle{unsrt}
 % \bibliography{refs}
