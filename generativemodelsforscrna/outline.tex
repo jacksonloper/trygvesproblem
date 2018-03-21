@@ -129,6 +129,32 @@ Here we four rows and three columns of plots.  Each row corresponds to a differe
 
 We see that the true expression doesn't match the posterior predictive expression for the Vip and Sst genes as well as we might like.  Something better is needed.  Possibly more layers.  Possibly more training.  Worth thinking about.
 
+\subsection{Posterior predictive means}
+
+The posterior predictive mean can be interpreted as a ``denoised'' version of the original.  In this section we examine the Allen data from that point view.
+
+For example, here we have selected 1000 random entries from the gene by cell matrix.  For each entry, we plot a point in which the horizontal location indicates the true value of that entry, and the vertical position indicates the posterior predictive expectation of that entry.  
+
+\includegraphics[width=0.8\textwidth]{pics/resids2}
+
+We can compare this with a similar plot using posterior predictive samples instead of the true values.  This then forms a different kind of posterior predictive check.  
+
+\includegraphics[width=0.8\textwidth]{pics/resids3}
+
+The fact that these two plots look the same is encouraging.  
+
+We can also use heatmaps to try to give more structure to our understanding of this ``denoising'' process.  Here we have three plots: one giving the original gene expression for the first 1000 cells, one giving the posterior expected gene expression for the same cells, and one giving the residual.  In all cases we have transformed the data by taking $\log(1+x)$ and subtracting gene-level means.  Each column corresponds to a gene, and each row corresponds to a cell.  We have sorted the cells by one of the latent components, and sorted the genes by using a property of the gene decoder.  
+
+\includegraphics[width=0.8\textwidth]{pics/resids}
+
+Note that there is a group of cells which are much more difficult to understand, which are found at the bottom of the plot.  These are mostly astrocytes.
+
+Since we have 20000 cells, it might be nice to make a similar plot for all the cells.  However, such a plot would be very tall and perhaps difficult to look at.  We can instead take the full 20000 x 1400 plot and average neighboring rows and columns together.  This gives a plot like this:
+
+\includegraphics[width=0.6\textwidth]{pics/residsfull}
+
+If there was a lot of structure in the residual, we would feel that perhaps there was something important and obvious we were missing.  Since there isn't, we are reasonably encouraged.
+
 % \bibliographystyle{unsrt}
 % \bibliography{refs}
 
