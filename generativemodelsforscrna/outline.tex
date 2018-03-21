@@ -71,13 +71,14 @@ For inference, we use amortized variational inference.  In particular, we take t
 
 At the current moment, we have only actually implemented this model in the case the $H$ is a tree with depth 1, i.e. the hierarchy is trivial.   We take the data model to be a zero-inflated negative binomial.  It looks fairly promising.  For a simple qualitative assessment, consider the following.
 
-Scatterplot of the aggregate posterior distribution of $Z_{T_0}$, colored by posterior mean of the cluster assigment:
+Scatterplot of the aggregate posterior distribution of $Z_{T_0}$, colored by posterior mean of the cluster assigment.  That is, each dot is a cell, its position is given by a posterior sample of $Z_{T_0}$, and its color has something to do with what cluster we expect it to be in.  
 
 \includegraphics[width=0.4\textwidth]{pics/Z1}
 
-Notice that there are only so many clusters that are really clearly distinct in this latent space.  However, let's focus on that cluster on the right-hand side.  What happens if we look at the $Z_{T_1}$ variables for those cells?  We get substantial subclustering apparent in the $Z_{T_2}$ space:
+Notice that there are only so many clusters that are really clearly distinct in this latent space.  However, let's focus on that cluster on the right-hand side.  What happens if we look at the $Z_{T_1}$ variables for those cells?  We get substantial subclustering apparent in the $Z_{T_1}$ space.  In the following picture, each dot is a cell from the cluster on the right-hand-side of the previous figure, and the position is given by a posterior sample of $Z_{T_1}$.
 
 \includegraphics[width=0.4\textwidth]{pics/Z2}
+
 
 \subsection{Held out log likelihood}
 
