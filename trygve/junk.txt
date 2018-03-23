@@ -1,4 +1,44 @@
 
+\begin{figure}
+\includegraphics[width=0.8\textwidth]{pics/allenavg}
+\caption{Allen institute data: sampling information.  The first plot is the estimated $q(y|x)$, as we have already seen in other figures.  The second plot is a sample of $q(y|x)$,  \label{fig:allenavg}}
+\end{figure}
+
+\appendix
+
+\section{Dikin sampler}
+
+\label{sec:dikin}
+
+If we take $\hat p$ and $\hat q$ as ground truth, it is reasonable to wonder what the space $\{q:\ \hat pq=\hat p\hat q\}$ might look like.  To this end, we have implemented a method for sampling from this polytope, based on \citep{kannan2012random}.  
+
+Our procedure follows several steps:
+
+\begin{enumerate}
+\item Reformulate the polytope as $T_1=\{x:\ A_1x=b_1,\ x\geq 0\}$, where $x$ is a ravelled vector version of the matrix $q$, and $Ax=b$ captures the relevant constraints.
+\item Further reformulate this as $T_2=\{y:\ -A_2^Ty\leq \hat x\}$, according to the transformation $x=\hat x + A_2^T y$.  Here $\hat x$ is some feasible point in $T_1$ and the rows of $A_2$ span the $n$-dimensional kernel of $A_1$.  
+\item Use a Markov-chain monte-carlo method to obtain points \emph{nonuniformly sampled} from the polytope $T_2$.  In particular, for each $y\in T_2$ we define $E(y)$ as the Dikin ellipsoid centered at the point $y$, i.e. 
+\[
+E(y) = \left\{y':\ (y'-y)^T \left(\sum_i^n \frac{\alpha_i \alpha_i^T}{(\hat x_i-\alpha_i^T y)^2}\right)(y'-y) \leq 1\right\}
+\]
+where each $\alpha_i$ denotes a row of $A_2$.  Now consider the Markov chain defined by 
+\[Y_t | Y_{t-1} \sim ~ \mathrm{Uniform}(E(Y_{t-1}))
+\]
+Then it is easy to see that the stationary distribution of this chain is proportional the measure $\pi(dy)=dy/\mathrm{Vol}(E(y))$.  To ensure numerically robust performance, we adopt the following approach to sampling  $Y \sim \mathrm{Uniform}(E(y))$:
+  \begin{enumerate}
+  \item Define $\tilde A_2$ as a version of $A_2$ which is specially reweighted in terms of $y$, such that we may write $E(y)=\{y': |\tilde A_2 (y-y')| \leq 1\}$.  In particular, let the $i$th row of $\tilde A_2$ be given by $\alpha_i/(\hat x_i-\alpha_i^T y)$.  
+  \item Sample $U$ according to a uniform distribution on $[0,1]$ and $Z$ an $n$-dimensional standard normal.
+  \item Let $W$ denote the solution to the least squares problem $\min |\tilde A_2 x - Z|^2$.
+  \item Take $Y = y + U^{1/d} W / |\tilde A_2 W|$.
+  \end{enumerate}
+\item Estimate expectations for a uniform distribution on the polytope using importance sampling.
+\end{enumerate}
+
+
+To this end, we have implemented the Dikin ellipsoid sampler for exploring the polytope of $q$ which are consistent with observables; we give details on this sampler in Appendix \ref{sec:dikin}. As always it is hard to know whether it is fully mixing through the space.  Nonetheless, it does provide at least some additional insight into aspects of $q$ which are strongly ambiguous.  It can be seen in Figure \ref{fig:allenavg}.
+
+
+
 \begin{proof}
 
 The logic is in perfect symmetry for $u_1,u_2$, so we focus on the $u_1$ case.

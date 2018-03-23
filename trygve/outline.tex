@@ -147,7 +147,10 @@ We looked at Allen Institute cell-type assignment of cells, performed using two 
 
 These looked reasonable to the scientists, and also pointed out some possible issues.  In particular, some cell types tend to die more often in one experimental modality than another, which would violate our assumptions.  However, this doesn't bother them, because they see this technique as a way to \emph{validate} their assignments of clusters.  As such, if the result of our algorithm doesn't make sense, that's great because it may help them to figure out \emph{which cell types are dying more} and then they can upweight certain groups correspondingly.  Or it may help them figure out that their cluster assignment was all wrong.  This is how they see my method fitting into their pipelines: as a way of sanity checking their cluster assignments.  Which seems cool.
 
-There is one possibly confusing aspect of our output that might be nice to address.  The upper and lower bounds (as we have visualized them) are each actually impossible as values for $q$.  For example, the rows of the upper bounds generally sum to more than 1.  This is because we have taken \emph{elementwise bounds} on each entry.  However, it would be nice to sample uniformly from the set of possible values of $q$ which are consistent with our observations.  MCMC or rejection sampling might be good options to investigate.  These would help give the user another way to understand what possible values $q$ might take on.  
+There is one possibly confusing aspect of our output that we would like to to address.  The upper and lower bounds (as we have visualized them) are each actually impossible as values for $q$.  For example, the rows of the upper bounds generally sum to more than 1.  This is because we have taken \emph{elementwise bounds} on each entry.  An alternative is to  sample uniformly from the set of possible values of $q$ which are consistent with our observations.  We hope this may give the user another way to understand what possible values $q$ might take on.  
+
+
+
 
 \section{The conjecture}
 
@@ -202,6 +205,9 @@ To prove this conjecture, the essential point is to understand how the constrain
 
 \bibliographystyle{unsrt}
 \bibliography{refs}
+
+
+
 
 \end{document}
 
