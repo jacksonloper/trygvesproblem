@@ -44,6 +44,11 @@ We propose to help clarify some of these issues by building a fully generative m
 
 \section{Model}
 
+\begin{figure}
+\includegraphics[width=0.8\textwidth]{pics/plate}
+\caption{Plate diagram for the model \label{fig:plate}}
+\end{figure}
+
 Towards this end, we propose the following generative model for gene expression of a single cell.  We will denote the expression of gene $g$ in cell $c$ by $X_g^c$.  Let $H$ denote a tree of cell types.   
 
 \begin{enumerate}
@@ -51,18 +56,18 @@ Towards this end, we propose the following generative model for gene expression 
 \item For each $i<\ell$ let $Z^c_{T^c_i} \sim \cN(\mu_{T^c_{i+1}},\Sigma_{T^c_{i+1}})$, and take $Z^c_{T^c_\ell} \sim \cN(0,I)$
 \item For each gene $g$, let $\lambda^c_g \in \mathbb R^{p}$ denote a set of parameters.  These will be a deterministic function of the $Z$s:
 \[
-\lambda^c_g = f_g \left(\sum_{i=0}^{\ell} h_{T^c_i}(Z^c_{T^c_i})\right)
+\lambda^c_g = f_g \left(\sum_{i=0}^{\ell} h_{g,T^c_i}(Z^c_{T^c_i})\right)
 \]
 \item Conditioned on $Z^c$ we will have $X^c_g \sim p(x_g ; \lambda^c_g)$. 
 \end{enumerate}
 
-Let us unpack some of this:
+This can be a bit confusing to take in.  The plate diagram in Figure \ref{fig:plate} may help.  We can also try to unpack some of this in words:
 
 \begin{itemize}
 \item The latent representation $Z^c_i$ corresponds to features of that cell which are specific to all the cells which are descendents of $T^c_i$.
 \item The the cell's subcluster $T^c_{i+1}$ effects the distribution of its latent features at the $i$th level, $Z^c_i$.  That is, the latent distribution on the $i$th latent representation is governed by what subcluster it is part of within $T^c_i$.
 \item The distribution of the final latent representation, $Z^c_T$, is simply a standard normal.
-\item The functions $h_{T^c_i}$ indicates how these cell-type-specific features alter the distribution on the gene expressions for cells in that branch of the tree.  
+\item The functions $h_{g,T^c_i}$ indicates how these cell-type-specific features alter the distribution on the gene expressions for cells in that branch of the tree.  
 \end{itemize}
 
 For inference, we use amortized variational inference.  In particular, we take the variational family that $T$ and all the $Z_{T_i}$ are independent, $T$ is some categorical, and $Z$s are isotropic gaussians.  We build a neural network to estimate the variational parameters from gene expressions.  Note that this network must estimate the parameters for a gaussian at \emph{each node} in the tree $H$.
