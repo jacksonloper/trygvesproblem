@@ -149,8 +149,12 @@ These looked reasonable to the scientists, and also pointed out some possible is
 
 There is one possibly confusing aspect of our output that we would like to to address.  The upper and lower bounds (as we have visualized them) are each actually impossible as values for $q$.  For example, the rows of the upper bounds generally sum to more than 1.  This is because we have taken \emph{elementwise bounds} on each entry.  An alternative is to  sample uniformly from the set of possible values of $q$ which are consistent with our observations.  We hope this may give the user another way to understand what possible values $q$ might take on.  
 
+To this end, we use a Dikin ellipsoid sampler to approximate uniform samples from the set of valid $q$s which are consistent with what we've observed.  These are shown in Figure \ref{fig:allenavg}.  Whether the MCMC method is mixing or not is of course up for debate.  See Appendix \ref{sec:dikin} for some details.
 
-
+\begin{figure}
+\includegraphics[width=0.8\textwidth]{pics/allenavg}
+\caption{Allen institute data: sampling information.  The first plot is the estimated $q(y|x)$, as we have already seen in other figures.  The second plot is a single sample of $q(y|x)$,  The third plot is an average value of each entry of $q$ over many samples.  The final plot indicates the standard deviation of each entry over the samples. \label{fig:allenavg}}
+\end{figure}
 
 \section{The conjecture}
 
@@ -206,7 +210,53 @@ To prove this conjecture, the essential point is to understand how the constrain
 \bibliographystyle{unsrt}
 \bibliography{refs}
 
+\appendix
 
+\section{Dikin sampler}
+
+\label{sec:dikin}
+
+Consider a convex polytope $T=\{x:\ Ax\leq b\}$.  We have implemented a method for sampling from this polytope, based on the paper \citep{kannan2012random}.  This method makes use of the Dikin ellipsoids, $E(x)$.  For any $x$, these are defined by 
+
+\begin{itemize}
+    \item Computing the distance from $x$ to each facet of the polytope, i.e. $d_i = b_i - \sum_j A_{ij} X_j$.
+    \item Constructing $\tilde A$ as $\tilde A_{ij} = A_{ij} / d_i$.
+    \item Define $E(x) = \{y:\ |\tilde A (X-y)|\leq 1\}$.  
+\end{itemize}
+
+We can use these ellpsoids to efficiently sample the polytope $T$.    At each step, we have some point $X\in T$, and we would to use this point to obtain a new sample $Y$, such that by iterating this process we asymptotically obtain samples which are uniform in $T$.  Here is how we use $X$ to get $Y$:
+
+\begin{algorithm}[H]
+ \KwData{A point $X\in T$}
+ \KwResult{A point $Y\in T$}
+ \vspace{.1in}
+  Sample a proposal $\tilde Y$, uniformly from $E(X)$\;
+    \eIf{$X \in E(\tilde Y)$}{
+        Sample $U \sim \mathrm{Uniform}[0,1]$\;
+        \eIf{$U \leq \mathrm{Vol}(E(X))/\mathrm{Vol}(E(\tilde Y)) \leq 1$}{
+            Let $Y \gets \tilde Y$\;
+        }{
+            Let $Y \gets X$\;
+        }
+    }{
+        Let $Y\gets X$\;
+    }
+ \caption{Dikin sampler step}
+\end{algorithm}
+
+It is easy to show that the stationary distribution of the Markov chain found by iterating these Dikin sampler steps is indeed uniform on $T$.  To ensure an numerically robust method in the face of high-dimensional and nearly degenerate matrices, we take the following approach to robustly sampling from the ellipsoid:
+
+\begin{algorithm}[H]
+ \KwData{An $n\times m$ matrix $\tilde A$}
+ \KwResult{A point $X$ sampled uniformly from $\{x:\ |Ax|\leq 1\}$}
+ \vspace{.1in}
+  Sample $Z$ as an $n$-dimensional normal variables vector\;
+  Let $X$ denote the solution to the least squares problem $\min_x|\tilde Ax - Z|$\;
+  Normalize $X$ by $X \gets X/|\tilde AX|$\;
+  Sample $U \sim \mathrm{Uniform}[0,1]$\;
+  Scale $X$ by $X \gets X \times U^{1/m}$\;
+ \caption{Ellipsoid sampler}
+\end{algorithm}
 
 
 \end{document}
