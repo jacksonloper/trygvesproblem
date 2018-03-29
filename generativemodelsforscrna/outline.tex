@@ -135,11 +135,13 @@ Here we four rows and three columns of plots.  Each row corresponds to a differe
 
 We see that the true expression doesn't match the posterior predictive expression for the Vip and Sst genes as well as we might like.  Something better is needed.  Possibly more layers.  Possibly more training.  Worth thinking about.
 
-Another way to see that the model isn't quite right is to look at posterior predictive p values.  That is, for each entry of the matrix, we can compute the cumulative distribution function of that entry in light of the parameters predicted by the posterior mode.  Here we have done that for the first 1000 entries.  The results are not exactly encouraging:
+Another way to see that the model isn't quite right is to look at posterior predictive p values.  That is, for each entry of the matrix, we can compute the cumulative distribution function of that entry in light of the parameters predicted by the posterior mode.  Here we have done that for the first 1000 entries.  
 
 \includegraphics[width=0.8\textwidth]{pics/resids}
 
-We see that for some genes the $p$ values (which should be distributed uniformly) are almost always near 1.  We can dig deeper into this by looking at individual genes, and comparing the expected value for that gene under the model with the actual value.  There are clearly some systematic differences:
+These results are actually fairly encouraging.  Mostly it looks basically like white noise.  However, we do see that for some genes the $p$ values are almost always near 1: these are genes which express essentially never, and so have a high chance of turning off, and so their $p$ value is nearly $1$ whenever they are off, which is virtually always.  
+
+Anotehr way to dig deeper into the underfitting question is by looking at individual genes, and comparing the expected value for that gene under the model with the actual value.  There are clearly some systematic differences:
 
 \includegraphics[width=0.8\textwidth]{pics/residsdetail}
 
