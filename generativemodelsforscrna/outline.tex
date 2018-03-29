@@ -135,15 +135,15 @@ Here we four rows and three columns of plots.  Each row corresponds to a differe
 
 We see that the true expression doesn't match the posterior predictive expression for the Vip and Sst genes as well as we might like.  Something better is needed.  Possibly more layers.  Possibly more training.  Worth thinking about.
 
-Another way to see that the model isn't quite right is to look at posterior predictive p values.  That is, for each entry of the matrix, we can compute the cumulative distribution function of that entry in light of the parameters predicted by the posterior mode.  Here we have done that for the first 1000 entries; the results are not exactly encouraging:
+Another way to see that the model isn't quite right is to look at posterior predictive p values.  That is, for each entry of the matrix, we can compute the cumulative distribution function of that entry in light of the parameters predicted by the posterior mode.  Here we have done that for the first 1000 entries.  The results are not exactly encouraging:
 
 \includegraphics[width=0.8\textwidth]{pics/resids}
 
-We see that for some genes the $p$ values (which should be distributed uniformly) are almost always near 1, and in other cases they are almost always near 0.  We can dig deeper into this by looking at individual genes, and comparing the expected value for that gene under the model with the actual value.  There are clearly some systematic differences.
+We see that for some genes the $p$ values (which should be distributed uniformly) are almost always near 1.  We can dig deeper into this by looking at individual genes, and comparing the expected value for that gene under the model with the actual value.  There are clearly some systematic differences:
 
 \includegraphics[width=0.8\textwidth]{pics/residsdetail}
 
-One potential reason for this might be that the negative binomial data distribution is inappropriate.  To diagnose this, we fitted a zero-inflated negative binomial distribution to each collection of cells Allen Institute dubbed a ``cluster.''  We then measured the goodness-of-fit, in terms of whether various moments matched.  In particular, we compared the empirical mean, standard deviation, and proportion of zeros to the corresponding statistics which would be predicted by the learned models.  
+One potential reason for this systematic error might be that the negative binomial data distribution is inappropriate.  To diagnose this, we fitted a zero-inflated negative binomial distribution to each collection of cells Allen Institute dubbed a ``cluster.''  We then measured the goodness-of-fit, in terms of whether various moments matched.  In particular, we compared the empirical mean, standard deviation, and proportion of zeros to the corresponding statistics which would be predicted by the learned models.  
 
 \includegraphics[width=0.8\textwidth]{pics/zinbfitmatch}
 
