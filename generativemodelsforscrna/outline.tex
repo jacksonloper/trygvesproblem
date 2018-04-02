@@ -125,7 +125,7 @@ One limitation of the method as we have implemented it is that the posterior pre
 
 \begin{figure}
 \includegraphics[width=0.8\textwidth]{pics/Z1gn}
-\caption{\label{fig:Z1gn}}
+\caption{Colors indicate gene expression level. \label{fig:Z1gn}}
 \end{figure}
 
 Here we four rows and three columns of plots.  Each row corresponds to a different gene.  Each dot in each plot corresponds to a cell.  The position of the dot indicates the latent representation of the cell, as inferred by posterior inference.  The color indicates the amount of expression for the particular gene for that cell, measured three ways:
@@ -142,14 +142,19 @@ Another way to see that the model isn't quite right is to look at posterior pred
 
 \begin{figure}
 \includegraphics[width=0.8\textwidth]{pics/resids}
-\caption{\label{fig:resids}}
+\caption{A $p$-value residual plot.\label{fig:resids}}
 \end{figure}
 
-These results are actually fairly encouraging.  Mostly it looks basically like white noise.  However, we do see that for some genes the $p$ values are almost always near 1: these are genes which express essentially never, and so have a high chance of turning off, and so their $p$ value is nearly $1$ whenever they are off, which is virtually always.  If we restrict ourselves to those genes whose average probability of going off is less than 20\%, we obtain Figure \ref{fig:residslesszeros}.
+These results are actually fairly encouraging.  Mostly it looks basically like white noise.  However, we do see that for some genes the $p$ values are almost always near 1: these are genes which express essentially never, and so have a high chance of turning off, and so their $p$ value is nearly $1$ whenever they are off, which is virtually always.  If we restrict ourselves to those genes whose average probability of going off is less than 20\%, we obtain Figure \ref{fig:residslesszeros}.  We do this in Figure \ref{fig:residslesszerosFA}.
 
 \begin{figure}
 \includegraphics[width=0.8\textwidth]{pics/residslesszeros}
-\caption{\label{fig:residslesszeros}}
+\caption{If we include only genes that express at least 80\% of the time, the $p$-value residual plot looks less structured.\label{fig:residslesszeros}}
+\end{figure}
+
+\begin{figure}
+\includegraphics[width=0.8\textwidth]{pics/residslesszerosFA}
+\caption{Using Factor Analysis for our model (with 16 factors), we see more significant underfitting.  (Here we include only genes that express at least 80\% of the time)\label{fig:residslesszerosFA}}
 \end{figure}
 
 Another way to dig deeper into the underfitting question is by looking at individual genes, and comparing the expected value for that gene under the model with the actual value.  There are clearly some systematic differences, as we see in Figure \ref{fig:residsdetail}.
