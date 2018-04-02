@@ -1,4 +1,106 @@
 
+
+Let
+\[
+\Theta(p,h)\triangleq\{q:\ pq=h\}
+\]
+In these terms, proving our theorem amounts to showing $\Theta(\hat p,\hat q)\rightarrow \Theta(p^*,h^*)$.  It is straightforward to see that $\hat p\rightarrow p^*$ and $\hat p\hat q\rightarrow h^*$ in probability in the Frobenius norm.  Thus it would be sufficient to show that the map $p,h\mapsto \Theta(p,h)$ is continuous in the Hausdorff metric.  Unfortunately, if some of the entries of $h$ are zero, this continuity may fail.\footnote{We suspect that these discontinuities are not actually relevant to the proof, since they appear to hinge on changes in $p^*$ from very zero to a very small values, and the zero-values of $p^*$ can in fact be determined with arbitrarily high probability.  Nonetheless, exact understanding of these matters continues to elude the authors, so for now we content ourselves by insisting on a stronger condition, namely that $h^*>0$.}  If $h>0$, however, we can indeed prove a kind of continuity.  
+
+Fix any $\epsilon,p^*,h^*$ with $h^*_{\ell y}\geq c>0$ for each $\ell y$ and such that $p^*$ has linearly independent rows and $\Theta^*=\Theta(p^*,h^*)\neq\emptyset$.  Our task is to show that we can find $\delta$ so that for every $\hat p,\hat h$ satisfying $|\hat p - p^*|_F<\delta$ and $|h  - h^*|_F<\delta$ we have that $\hat \Theta=\Theta(\hat p,\hat h)$ satisfies $d_H(\Theta^*,\hat \Theta)<\epsilon$.   
+
+The outline of our argument is as follows.  
+
+\begin{itemize}
+\item Show that $\sup_{q^* \in \Theta^*} \inf_{\hat q \in \hat \Theta} |\hat q-q^*|_F$ is small.
+  \begin{itemize}
+    \item Pick any $q^*\in \Theta^*$.  
+    \item Let $q_1 = q^* + {\hat p}^\dagger (\hat h-q^*)$
+    \item Let $q_2$  
+  \end{itemize}
+\end{itemize}
+
+\end{proof}
+
+\begin{lem}\label{lem:centralpoint}
+Fix any $p$ with linearly independent rows and any $h$ whose entries are all greater than $c$.  Let us further assume $\Theta(p,h)\neq\emptyset$.  We can find $\rho>0$ and $q^* \in \Theta(p,h)$ such that the entries of $q$ are all greater than $\rho$.
+\end{lem}
+\begin{proof}
+Consider the optimization problem
+\[
+\max_q \left(\sum_{xy} h_{xy} \log\left(\sum_x p_{\ell x} q_{x y} \right) + \sum_{xy} \log q_{x y}\right)
+\]
+\end{proof}
+
+To produce a good estimator for $\Theta^*$, we must first identify what would constitute a good estimator.  Towards this end, we propose Hausdorff distance as the metric.  That is, we seek an estimator $\hat \Theta$ such that as the amount of data goes to infinity, 
+\[
+d_H(\Theta,\Theta^*)\rightarrow 0
+\]
+where
+\[
+d_H(S_1,S_2)\triangleq \sup_{q_1 \in S_1} \inf_{q_2 \in S_2} |q_1-q_2| + \sup_{q_2 \in S_2} \inf_{q_1 \in S_1} |q_1-q_2|
+\]
+and $|\cdot|$ denotes a Euclidean metric on the underlying space.  This metric on sets is nice in that if we can guarantee convergence in this metric, then we are assured that any bounds are also guaranteed to converge.  For example, we would know that $\sup_{q\in\hat\Theta}\{q(y|x)\}$ was a consistent estimator for $\sup_{q\in\Theta^*}\{q(y|x)\}$.
+
+Having defined what we want out of an estimator, we will now describe our proposal.  
+
+Note that the upper and lower bounds (as we have visualized them) are each actually impossible as values for $q$.  For example, the rows of the upper bounds generally sum to more than 1.  This is because we have taken \emph{elementwise bounds} on each entry.  An alternative is to  sample uniformly from the set of possible values of $q$ which are consistent with our observations.  We hope this may give the user another way to understand what possible values $q$ might take on.  To this end, we use a Dikin ellipsoid sampler to approximate uniform samples from the set of valid $q$s which are consistent with what we've observed.  These are shown in Figure \ref{fig:allenavg}.  Whether the MCMC method is mixing or not is of course up for debate.  See Appendix \ref{sec:dikin} for some details.
+
+\section{The conjecture}
+
+Here we give an outline for how the conjecture might be proved.
+
+For any transition matrices $p,h$,\footnote{Here by transition matrix we just mean that the rows sum to 1 and the entries are nonnegative.} let $\Theta(p,h)$ denote the subset of transition matrices satisfying
+
+\[
+\Theta(p,h) \triangleq \{q:\ pq=h\}
+\]
+
+Now let us say we have some $p^*,h^*$, and some estimators $\hat p,\hat h$.  If the estimators were consistent, we might hope that $\Theta(\hat p,\hat h)$ would yield a consistent estimator for $\Theta(p^*,h^*)$.  In particular, we would ask that the Hausdorff distance would converge to zero in probability, $d_H(\Theta(\hat p,\hat h),\Theta(p^*,h^*))\rightarrow 0$.  Unfortunately, this is simply not the case.  Here's an example:
+
+\begin{align*}
+p^* &= (1, 0)\\
+h^* &= (1, 0)\\
+\Theta(p^*,h^*) &= 
+  \left\{q:\ q=\left(\begin{array}{cc}
+  1 & 0 \\
+  \alpha & 1-\alpha \\
+  \end{array}\right)\right\}
+\end{align*}
+
+Notice that the second row of $q$ is left \emph{totally} unspecified.  This is because the equation $p^*q=h^*$ simply places no constraints on the second row of $q$.  Now let us say we use our consistent estimator, and get something \emph{very} close to the truth.  We might get a dreadfully wrong impression of $q$:
+
+\begin{align*}
+\hat p &= \left(\frac{99}{100}, \frac{1}{100}\right)\\
+\hat h &= (1, 0)\\
+\Theta(\hat p,\hat h) &= 
+  \left\{q:\ q=\left(\begin{array}{cc}
+  1 & 0 \\
+  1 & 0 \\
+  \end{array}\right)\right\}
+\end{align*}
+
+Suddenly $q$ is \emph{entirely constrained} by the equation $pq=h$.  This dramatic change is possible because $q$ is constrained not only by the equation $pq=h$ but also by the fact that $q$ must be a transition matrix.  This allows for the possibility that although $p^*\approx \hat p$ and $h^*=\hat h$, we have that $d_H(\Theta(\hat p,\hat h),\Theta(p^*,h^*))=1$.  Not good.
+
+However, this troubling example relied crucially on the fact that a given entry of $p$ went from zero to nonzero.  Let us therefore ask that the estimator $\hat p$ was consistent both in the usual Euclidean $\mathscr L^2$ sense, as well as in the sense that it eventually got the zeros right.  That is, $\mathbb P(\hat p(x|\ell)=0\Leftrightarrow p^*(x|\ell)=0) \rightarrow 1$.  Such an estimator is certainly easy to come by (the empirical distribution will do).  To prove consistency, it would then be sufficient to show that
+
+\vspace{.1in}
+\begin{conj}
+For every $\epsilon>0$, we can find a $\delta>0$ so that if $|h_1 -h_2|^2<\delta$, $|p_1 -p_2|^2<\delta$, and $p_1(x|\ell)=0\Leftrightarrow p_2(x|\ell)=0$, then $d_H(\Theta(p_1,h_1),\Theta(p_1,h_1))<\epsilon$.
+\end{conj}
+
+To prove this conjecture, the essential point is to understand how the constraint $pq=h$ related to the $k$-faces (vertices, facets, etc) of the polytope of transition matrices.  If that constraint is somehow \emph{degenerate} with respect to one of the faces, then we get in trouble because a slight perturbation can change the degeneracy and thus create weird effects.  However, as long as the nature of the degeneracy is the same for both $p_1,p_2$, I believe there is no problem.  So to prove this conjecture, it remains to do three essential things
+
+\begin{itemize}
+    \item mathematically characterize the ``degeneracy'' of the constraint $pq=h$ with respect to faces of the transition matrix polytope
+    \item show that if $p_1,p_2$ share the same qualitative nature of degeneracy and $p_1\approx p_2$, then $\Theta(p_1,h_1)\approx\Theta(p_2,h_2)$.
+    \item show that the qualitative nature of this degeneracy is only changed when an entry of $p$ switches between zero and nonzero
+\end{itemize}
+
+\begin{figure}
+\includegraphics[width=0.8\textwidth]{pics/allen}
+\caption{Output: one table.  In the same setup as Figure \ref{fig:alleninput}.  We produce a single table that suggests how the outputs of the two techniques line up.  We are able to do this even though we were never able to observe a cell processed by both techniques.  \label{fig:allenoutput}}
+\end{figure}
+
 \begin{figure}
 \includegraphics[width=0.8\textwidth]{pics/allenavg}
 \caption{Allen institute data: sampling information.  The first plot is the estimated $q(y|x)$, as we have already seen in other figures.  The second plot is a sample of $q(y|x)$,  \label{fig:allenavg}}

@@ -121,9 +121,12 @@ To do posterior inference on held out likelihood, our approach is to first set a
 
 \subsection{Posterior predictive samples}
 
-One limitation of the method as we have implemented it is that the posterior predictive distribution seems to be substantially underfitting.  To see what we mean, consider the following figure:
+One limitation of the method as we have implemented it is that the posterior predictive distribution seems to be substantially underfitting.  To see what we mean, consider Figure \ref{fig:Z1gn}:
 
+\begin{figure}
 \includegraphics[width=0.8\textwidth]{pics/Z1gn}
+\caption{\label{fig:Z1gn}}
+\end{figure}
 
 Here we four rows and three columns of plots.  Each row corresponds to a different gene.  Each dot in each plot corresponds to a cell.  The position of the dot indicates the latent representation of the cell, as inferred by posterior inference.  The color indicates the amount of expression for the particular gene for that cell, measured three ways:
 
@@ -135,25 +138,42 @@ Here we four rows and three columns of plots.  Each row corresponds to a differe
 
 We see that the true expression doesn't match the posterior predictive expression for the Vip and Sst genes as well as we might like.  Something better is needed.  Possibly more layers.  Possibly more training.  Worth thinking about.
 
-Another way to see that the model isn't quite right is to look at posterior predictive p values.  That is, for each entry of the matrix, we can compute the cumulative distribution function of that entry in light of the parameters predicted by the posterior mode.  Here we have done that for the first 1000 entries.  
+Another way to see that the model isn't quite right is to look at posterior predictive p values.  That is, for each entry of the matrix, we can compute the cumulative distribution function of that entry in light of the parameters predicted by the posterior mode.  In Figure \ref{fig:resids} we have done that for the first 1000 entries.  
 
+\begin{figure}
 \includegraphics[width=0.8\textwidth]{pics/resids}
+\caption{\label{fig:resids}}
+\end{figure}
 
-These results are actually fairly encouraging.  Mostly it looks basically like white noise.  However, we do see that for some genes the $p$ values are almost always near 1: these are genes which express essentially never, and so have a high chance of turning off, and so their $p$ value is nearly $1$ whenever they are off, which is virtually always.  
+These results are actually fairly encouraging.  Mostly it looks basically like white noise.  However, we do see that for some genes the $p$ values are almost always near 1: these are genes which express essentially never, and so have a high chance of turning off, and so their $p$ value is nearly $1$ whenever they are off, which is virtually always.  If we restrict ourselves to those genes whose average probability of going off is less than 20\%, we obtain Figure \ref{fig:residslesszeros}.
 
-Anotehr way to dig deeper into the underfitting question is by looking at individual genes, and comparing the expected value for that gene under the model with the actual value.  There are clearly some systematic differences:
+\begin{figure}
+\includegraphics[width=0.8\textwidth]{pics/residslesszeros}
+\caption{\label{fig:residslesszeros}}
+\end{figure}
 
+Another way to dig deeper into the underfitting question is by looking at individual genes, and comparing the expected value for that gene under the model with the actual value.  There are clearly some systematic differences, as we see in Figure \ref{fig:residsdetail}.
+
+\begin{figure}
 \includegraphics[width=0.8\textwidth]{pics/residsdetail}
+\caption{\label{fig:residsdetail}}
+\end{figure}
 
-One potential reason for this systematic error might be that the negative binomial data distribution is inappropriate.  To diagnose this, we fitted a zero-inflated negative binomial distribution to each collection of cells Allen Institute dubbed a ``cluster.''  We then measured the goodness-of-fit, in terms of whether various moments matched.  In particular, we compared the empirical mean, standard deviation, and proportion of zeros to the corresponding statistics which would be predicted by the learned models.  
+One potential reason for this systematic error might be that the negative binomial data distribution is inappropriate.  To diagnose this, we fitted a zero-inflated negative binomial distribution to each collection of cells Allen Institute dubbed a ``cluster.''  We then measured the goodness-of-fit, in terms of whether various moments matched.  In particular, we compared the empirical mean, standard deviation, and proportion of zeros to the corresponding statistics which would be predicted by the learned models.  We show this in Figure \ref{fig:zinbfitmatch}.
 
+\begin{figure}
 \includegraphics[width=0.8\textwidth]{pics/zinbfitmatch}
+\caption{\label{fig:zinbfitmatch}}
+\end{figure}
 
 In terms of mean and zero proportion, these seem nearly okay, but in terms of variance we can see that we are not doing the greatest job.  For a great many cell types we are predicting standard deviations which are much higher than the reality.  This is perhaps not surprising, since the negative binomial model is inherently overdispersed, and simply cannot accomodate underdispersed data.  
 
-Another possible source of trouble is that in the particular model we use we have made certain assumption about how $\alpha,\beta,h$ can vary.  This could be a big problem.  To see why, we looked at each the fitted parameters of the zero-inflated negative binomial distribution for each cell-type.  This yields a kind of three-dimensional scatterplot, in which each dot is a cell type, and the location indicates the value of each of its three fitted parameters.  Here we show three projections of that scatterplot:
+Another possible source of trouble is that in the particular model we use we have made certain assumption about how $\alpha,\beta,h$ can vary.  This could be a big problem.  To see why, we looked at each the fitted parameters of the zero-inflated negative binomial distribution for each cell-type.  This yields a kind of three-dimensional scatterplot, in which each dot is a cell type, and the location indicates the value of each of its three fitted parameters.  Here we show three projections of that scatterplot in Figure \ref{fig:zinbfitdiversity}.
 
+\begin{figure}
 \includegraphics[width=0.8\textwidth]{pics/zinbfitdiversity}
+\caption{\label{fig:zinbfitdiversity}}
+\end{figure}
 
 Clearly there is quite a lot of variety in terms of how these parameters may vary.  They do not appear to lie on any kind of low-dimensional manifold.  So we must be very careful in terms of what assumptions our model makes about how these parameters may be tied together.  
 
