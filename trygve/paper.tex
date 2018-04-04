@@ -13,7 +13,7 @@
 
 % \linenumbers
 
-\title{Identifying the unidentifiable: combining knowledge from destructive measurements}
+\title{Markov Link Method for combining knowledge from destructive measurements}
 \author{Jackson Loper}
 
 \usepackage{amsthm}
@@ -25,7 +25,7 @@
 \maketitle
 
 \begin{abstract}
-When many different measurement tools are applied, how can we best combine information from the different different tools?  If we can apply multiple measurement tools to the same specimen, we can at least begin to understand how the tools they are related.  We call this ``joint measurement.''  What can we do if joint measurement is unavailable?  In this paper we investigate a simple assumption that can make it possible do obtain joint distributions even when joint measurement isn't possible.
+When many different measurement tools are applied, how can we best combine information from the different different tools?  If we can apply multiple measurement tools to the same specimen, we can at least begin to understand how the tools they are related.  We call this ``joint measurement.''  What can we do if joint measurement is unavailable?  In this paper we propose the Markov Link Method: a simple assumption that can make it possible to obtain joint distributions linking tools together, even when joint measurement isn't possible.
 \end{abstract}
 
 The modern setting is rife with experimental methodologies, and it can be very frustrating to understand how the output of these methods relate to one another.  This is particularly difficult if joint measurement is unavailable, i.e.\ it is impossible or impractical to observe a single specimen with multiple methodologies.  For example, after processing a neuron with a given single-cell rna sequencing technique, we cannot generally go back and process that same neuron with a different technique.   This makes it seemingly impossible to calibrate the techniques against each other.  By contrast, it is easy to calibrate thermometers against each other, because we can simply measure the same water with two different thermometers and see how the measurements relate.  Without joint measurement, this isn't possible.
@@ -47,9 +47,9 @@ from another technique -- but how can we know how those clusters correspond to o
 
 \end{itemize}
 
-In this work we show that it is indeed sometimes possible to get useful and statistically rigorous bounds for these kinds of questions, even when joint measurements are unavailable.   In particular, we consider the case that we can obtain samples from a variety of subpopulations.  If we can assume that the \emph{relationship} between the measurements is the same in each subpopulation, we can use these samples to learn something about that relationship -- even though we never see both measurements for any single member of the population.  
+In this work we propose the Markov Link Method (MLM) as a way to get useful and statistically rigorous bounds on the relationship between two measurement tools even when joint measurements are unavailable, hopefully yielding insight for the kinds of difficulties illustrated above.   In particular, we consider the case that we can obtain samples from a variety of subpopulations.  If we can assume that the \emph{relationship} between the measurements is the same in each subpopulation, we can use these samples to learn something about that relationship -- even though we never see both measurements for any single member of the population.  
 
-We apply our method to single cell RNA data.  We show how different clusterings from different single cell RNA modalities can be connected.  Our method yields results which are generally consistent with the scientist's understanding of the data and clusters, but also reveal potential gaps which could be important for further study.
+We apply MLM to the inferred cell-types of single neurons, as determined by two different methods for single-cell RNA sequencing.  Technique I is known to have high fidelity, whereas technique II is less accurate.  However, technique II also carries additional electrophysiological information which we would later like to use for other purposes.  We show how the cell-type inferences from the two techniques can be connected.  Our method yields results which are generally consistent with the scientist's understanding of the data and clusters, but also reveal potential gaps which could be important for further study.
 
 This work stands on the shoulders of a long history of relating probabilistic assumptions to probabilistic inequalities.  Much of this literature comes from research into causality.  For example, in \cite{bonet2001instrumentality} Bonet uses polytopes not unlike the ones seen here to explore whether a variable can be used as an instrument.  The famous Clauser-Horne-Shimony-Holt inequality was designed to help answer causality questions in quantum physics, but it also sheds light on what distributions are consistent with certain assumptions \cite{clauser1969proposed}.  Indeed the physics literature has contributed many key inequalities (cf. \cite{chaves2014inferring}, \cite{kela2017semidefinite}, and the references therein).  Perhaps the closest work to this one would be \cite{makarov1982estimates}, which used two marginal distributions to get bounds on a property of the joint distribution (namely the distribution of the sum).  We build on this approach, both by using subpopulations to considerably refine our estimates and by considering the entire space of possible joint distributions instead of simply a particular aspect of the joint.  
 
@@ -57,7 +57,7 @@ This work stands on the shoulders of a long history of relating probabilistic as
 
 \begin{figure}
 \hfill{}\includegraphics[width=.3\textwidth]{pics/plate}\hfill{}
-\caption{We assume that we have two datasets, both governed by the same process.  In the top dataset, the results of technique II, denoted by $Y_i$, are hidden from us (we indicate this by making the circle gray).  In the bottom dataset, the results of technique I, denoted by $X_i$, are hidden from us.  In each dataset, we know what subpopulation of specimens we are considering, and this is designated by $\ell_i$.  Thus, for any given specimen $i$ we can observe either $\ell_i,X_i$ or $\ell_i,Y_i$ but never $\ell_i,X_i,Y_i$.  Using observations of $X_i$ we can certainly learn the parameters $p$ which govern the relationship between $X_i$ and the subpopulation, $\ell_i$.  However, if we believe that the relationship between $X$ and $Y$ is the same regardless of the population value $\ell$, we can also learn something about the parameters $q$ which govern the relationship between $X$ and $Y$.\label{fig:plate}}
+\caption{We assume that we have two datasets, drawn from different techniques applied to specimens from various subpopulations.  In the top dataset, the results of technique II, denoted by $Y_i$, are hidden from us (we indicate this by making the circle gray).  In the bottom dataset, the results of technique I, denoted by $X_i$, are hidden from us.  In each dataset, we know what subpopulation of specimens we are considering, and this is designated by $\ell_i$.  Thus, for any given specimen $i$ we can observe either $\ell_i,X_i$ or $\ell_i,Y_i$ but never $\ell_i,X_i,Y_i$.  Using observations of $X_i$ we can certainly learn the parameters $p$ which govern the relationship between $X_i$ and the subpopulation, $\ell_i$.  Likewise we can determine the relationship between $Y_i$ and $\ell_i$.  However, if we believe that the relationship between $X$ and $Y$ is the same regardless of the population value $\ell$, we can also learn something about the parameters $q$ which govern the relationship \emph{between} $X$ and $Y$.\label{fig:plate}}
 \end{figure}
 
 Mathematically, we formulate our model as follows:
@@ -78,29 +78,31 @@ We further posit a set of \emph{counterfactual} variables -- variables which cou
 \item Let $X_{n+1} \cdots X_n$ denote the observations we would have gotten if we had applied the first technique to the last $m$ members. 
 \end{itemize}
 
-Our main assumption is that 
+Our main assumption is a kind of Markov assumption, from which we obtain the name ``Markov Link Method'':
 
 \begin{equation}\label{eq:mainassumption}
 \mathbb{P}(X_i=x,Y_i=y|L_i=\ell)=p^*(x_i|\ell_i)q^*(y_i|x_i)
 \end{equation}
 
-for some distributions $p^*,q^*$.  Moreover, we assume that the vectors $\{(p^*(x_1|\ell)\cdots p^*(x_n|\ell))\}_\ell$ are linearly independent.  If this seems unlikely, it may make sense to collapse similar values of $\ell$ together.  This assumption can be articulated by the plate diagram found in Figure \ref{fig:plate}.
+for some distributions $p^*,q^*$.  Moreover, we assume that the vectors $\{(p^*(x_1|\ell)\cdots p^*(x_n|\ell))\}_\ell$ are linearly independent.  If this seems unlikely, it may make sense to collapse similar values of $\ell$ together.  The Markov assumption can be visualized with the plate diagram found in Figure \ref{fig:plate}.
 
-The validity of these assumptions for a given situation should be closely contemplated.  There are several key questions to answer when deciding whether this assumption is applicable.  Does the process by which samples are gathered gathered depend only upon $\ell$?  In particular, is it not at all statistically related to which measurement technique was  applied, except through $\ell$?  Are the particular measurement biases of both techniques the same for every value of $\ell$?  Is the statistical relationship between the quantities being measured by the two techniques the same for every value of $\ell$?\footnote{Note that this is automatically true if both techniques are measuring the same thing.  More generally, if two techniques have something that they both measure, we can restrict attention to that one common phenomenon.}  If the answer to all of these questions is yes, the assumption that $(X_i,Y_i)$ is drawn from $p(x_i|\ell_i)p(y_i|x_i)$ may apply.
+The validity of these assumptions for a given situation should be closely contemplated.  There are several key questions to answer when deciding whether this assumption is applicable.  Does the process by which samples are gathered gathered depend only upon $\ell$?  In particular, is it not at all statistically related to which measurement technique was  applied, except through $\ell$?  Are the particular measurement biases of both techniques the same for every value of $\ell$?  Is the statistical relationship between the quantities being measured by the two techniques the same for every value of $\ell$?\footnote{Note that this is automatically true if both techniques are measuring the same thing.  More generally, if two techniques have something that they both measure, we can restrict attention to that one common phenomenon.}  If the answer to all of these questions is yes, the assumption that $(X_i,Y_i)$ is drawn from $p(x_i|\ell_i)p(y_i|x_i)$ may apply.  If some answer is no the method may still apply, but certain corrections may be necessary; we discuss these in our conclusions.
 
-We can now articulate our goal.  Informally, our goal is to see what we can understand about the relationship between the observations $X_i$ from one measurement modality and the other measurement modality $Y_i$, i.e. the distribution $q^*$.  Unfortunately, given the limitations of the data, this may not be possible.  Indeed, it is easy to see that $q$ is dramatically unidentifiable in many cases.  
+Under these key assumptions, the Markov Link Method gives us a way to uncover something about the relationship between the observations $X_i$ from one measurement technique and the observations $Y_i$ from the other measurement technique, i.e. the distribution $q^*$.  Unfortunately, given the limitations of the data, $q^*$ itself may be dramatically unidentifiable in many cases.  Instead, the Markov Link Method yields a \emph{set} of possible values of $q$ which are consistent with the data.  It can then be shown that the true value $q^*$ lies close to this set with high probability.  
 
-For example, consider the case that $\ell$ lies in the set ${1,2}$, $X$ lies in the set ${1,\cdots 100}$ and $Y$ lies in the set ${1,2}$.  As long as $m,n$ are large enough, we can effectively estimate $p^*$ and $h^*(Y|\ell)=\sum_x p^*(x|\ell)q(Y|x)$.  However, this does not tell us very much about what $q$ might be.  Indeed, $q$ lies in a 100-dimensional space, and the restriction that $q$ must satisfy $h^*(Y|\ell)=\sum_x p^*(x|\ell)q(Y|x)$ for each $\ell,Y$ actually only introduces 2 new constraints.  Thus there is a 98-dimensional space that $q$ may lie in, and we simply cannot know where in that space $q$ may lie.  However, in practice, we find that the \emph{inequality constraints}, namely that $q(y|x)>0$ for every $x,y$, can actually force this apparently vast space to be tightly centered around a single point.  
+To understand the limitations of the data more clearly, consider the case that $\ell$ lies in the set $\{1,2\}$, $X$ lies in the set $\{1,\cdots 100\}$ and $Y$ lies in the set $\{1,2\}$.  As long as $m,n$ are large enough, we can effectively estimate $p^*$ and $h^*(Y|\ell)=\sum_x p^*(x|\ell)q(Y|x)$.  However, this does not tell us very much about what $q$ might be.  Indeed, $q$ lies in a 100-dimensional space, and the restriction that $q$ must satisfy $h^*(Y|\ell)=\sum_x p^*(x|\ell)q(Y|x)$ for each $(\ell,Y)$ actually only introduces 2 new constraints.  Thus there is a 98-dimensional space that $q$ may lie in, and we simply cannot know where in that space $q$ may lie.  However, in practice, we find that the \emph{inequality constraints}, namely that $q(y|x)\geq0$ for every $(x,y)$, can actually force this potentially vast space to be tightly centered around a single point.  
 
-This suggests a somewhat less amibtious goal: to understand the \emph{set of values} of $q$ which are consistent with the data.  Specifically, we will seek to produce an estimator for the set
+In formal terms, the Markov Link Method produces a estimator for the set of possible values of $q$ which are consistent with what is observable, i.e.
 
 \begin{equation*}
 \Theta^* \triangleq \left\{q:\ \sum_y p^*(x|\ell)q(y|x) = \sum_y p^*(x|\ell)q^*(y|x)\ \forall \ell,y\right\}
 \end{equation*}
 
+Let us see now how MLM achieves this.
+
 \section{Algorithm}
 
-We begin by estimating
+The Markov Link Method begins by estimating
 
 \begin{itemize}
 \item $p^*$ using the empirical distribution of the observations $\{X_i\}$, $\hat p(x|\ell)$
@@ -108,16 +110,16 @@ We begin by estimating
 \end{itemize}
 
 These empirical distributions may not be quite consistent with the original assumption that the distribution of $X,Y|\ell$ may be written as $p^*(x|\ell)q^*(y|x)$.  In particular, it may be that there is \emph{no} value of $q$ such that $\sum_x \hat p(x|\ell) q(y|x) = \hat h(y|\ell)$.  There may also be many such values.  To obtain a well-defined estimator, we take a value of $q$ which is decent, and use a slight regularization to ensure it is uniquely defined.  Let $N_{X,\ell}=\#\{i\leq n:\ \ell_i=\ell\},N_{Y,\ell}=\#\{i> n:\ \ell_i=\ell\}$.  We take
-
+%
 \begin{equation*}
 \hat q = \argmax_q \sum_\ell N_{Y,\ell}\sum_{y}\hat h(y|\ell)\log\left(\sum_{x}\hat p(x|\ell)q(y|x)\right) + \kappa \sum_{xy} \log q(y|x)
 \end{equation*}
-
-Note in the second term we apply an entropic penalty to $q$.  This is both necessary to ensure that $\hat q$ is uniquely defined in terms of $\hat q,\hat h$, as well as a useful regularization. This regularization pushes us slightly towards uniform distributions, which makes sense if we believe that $q(y|x)>0$  for each $x,y$.  Other regularizations could also be used and would potentially enjoy similar theoretical guarantees to the ones we will show below.
+%
+In practice, we took the entropic regularizer $\kappa$ to be $0.01$; it is mostly useful for ensuring numerical stability of the algorithm.  
 
 This method gives us an estimate for $\hat q$, but we emphasize this estimate is very likely to be \emph{inconsistent} for the true value of $q^*$.  As we described in the previous section, this is simply a limitation of the data we have available -- attempting to deduce $q^*$ may be too much to ask for.  However, subject to suitable assumptions, the estimator
 \begin{equation*}
-\hat \Theta\triangleq \left\{q:\ \sum_y p(x|\ell)q(y|x) = \sum_y p(x|\ell)\hat q(y|x)\ \forall \ell,y\right\}
+\hat \Theta\triangleq \left\{q:\ \sum_y \hat p(x|\ell)q(y|x) = \sum_y \hat p(x|\ell)\hat q(y|x)\ \forall \ell,y\right\}
 \end{equation*}
 is indeed consistent in the sense that we can be asymptotically assured that the true $q^*$ lies very close to some point in $\hat \Theta$.
 
@@ -134,31 +136,72 @@ We close by remarking that the assumption $q^*(y|x)>0$ is very likely to be unne
 
 \section{Empirical results}
 
-Our motivation for this problem arose from looking at Allen Institute cell-type assignment of cells, performed using two different modalities.  The only thing connecting the two modalities was that each modality had a variety of samples drawn from a variety of sub-populations, and the same sub-populations were used for both modalities.  Thus our input was two tables: (technique I cluster $\times$ sub-population), and (technique II cluster $\times$ sub-population) (Figure \ref{fig:alleninput}).  Our output was a polytope $\hat \Theta$ of possible ways that technique I clusters could line up against the technique II clusters (Figure \ref{fig:allenoutput}).  
-
-Empirically, we see that this polytope appears to be very small, and tightly centered around our estimate for $\hat q$.  Thus $\hat q$ may indeed serve as a useful indication of how the different technique's clusters line up.  There are certain aspects of $q$, however, which are more uncertain than others.  We were able to measure this by sampling uniformly from the polytope $\hat \Theta$ and seeing which entries varied the most (cf. Appendix \ref{sec:dikin}).  Detecting these entries is useful because it suggests what further experiments would be helpful to more fully clarify the relationship between the two modalities.  
-
 \begin{figure}
 \begin{minipage}[c]{.3\textwidth}
 \includegraphics[width=.9\textheight,angle=270]{pics/alleninput}
 \end{minipage}
 \hfill
 \begin{minipage}[l]{.4\textwidth}
-\caption{Input: two tables.  The Allen Institute had access to various cre-line-based cell selection techniques.  Each technique pulls out a different group of cells.  Once the cells were selected, they were then either subjected to technique I (`facs') or technique II (`patch').  Technique I gives a very complete analysis of the gene expression of the cell.  Technique II gives a less complete analysis, but yields additional electrophysiological data that may be of interest.  The results of technique I was used to assign it to one of 116 categories, and the results of technique II was used to assign it to one of 14 categories.  The tables above show the distribution of category assignment for each selection technique.  The goal is to use these tables to be able to say something about how the 14 categories from Technique II might line up with the 116 categories from technique I.  \label{fig:alleninput}}
+\caption{Input: two tables.  The Allen Institute had access to various cre-line-based cell selection techniques.  Each technique pulls out a different group of cells.  Once the cells were selected, they were then either subjected to technique I (`facs') or technique II (`patch').  Technique I gives a very complete analysis of the gene expression of the cell.  Technique II gives a less complete analysis, but yields additional electrophysiological data that may be of interest.  The results of technique I was used to assign cells to one of 116 categories, and the results of technique II was used to assign cells to one of 14 categories.  The tables above show the distribution of category assignment for each sub-population selection technique.  The goal is to use these tables to be able to say something about how the 14 categories from Technique II might line up with the 116 categories from technique I.  \label{fig:alleninput}}
 \end{minipage}
+\end{figure}
 
+Our motivation for this problem arose from looking at Allen Institute cell-type assignment of cells, performed using two different experimental techniques (also called experimental ``modalities'').  The only thing connecting the two modalities was that each modality had a variety of samples drawn from a variety of sub-populations, and the same sub-populations were used for both modalities.  Thus our input was two tables: (technique I cell-type $\times$ sub-population), and (technique II cell-type $\times$ sub-population) (Figure \ref{fig:alleninput}).  A key question immediately appears from these tables: does the way in which we have clustered cells into different types under technique I line up nicely with the way in which we have clustered cells under technique II?  The Markov Link Method gives us a way of addressing this question that is completely agnostic about the underlying genetic markers that were used to produce the clusters.  Our output was a set $\hat \Theta$ of possible ways that technique I cell-types could line up against the technique II cell-types.  That is, each element of $\hat \Theta$ was itself a table of the form (technique I cell-type $\times$ technique II cell-type).
+
+\subsection{Making sense of Markov Link Method output}
+
+The Markov Link Method yields a set (indeed, a convex polytope).  Each element of this set gives a particular way that technique I might be related to technique II.  It is not immediately easy to understand how to use or visualize the polytope $\hat \Theta$ of possible values for $q$.  Ultimately we want to know something about the correspondence between the techniques, i.e. $q^*$ -- how can we make good use of a \emph{set} of possible corresponences?  Here we suggest several main tools for analysis:
+
+\begin{itemize}
+    \item Rotationally Uniform eXtremal samples (RUX).  Every point in the polytope is a convex combination of its vertices, so by understanding the extremal vertices of the polytope we understand much about what values are possible.  Unfortunatelly, there are a truly vast number of vertices, and looking at all of them is quite impossible.  Instead, we propose a method for drawing samples which are illustrative of the overall character of the polytope: Rotationally Uniform eXtremal samples.  These samples are drawn simply by selecting a random direction in the polytope, and finding the point in the polytope which is furthest along that direction.  With probability 1 this point is unique, and provides a useful notion of the polytope's extent.  Obtaining such a sample simply requires solving a linear programming problem.  We show 10 such samples in Figure \ref{fig:allenRUX}.  
+
+    Each sample shows a possible way that the two different techniques might correspond; together, these samples reveal both what the data says about the correspondence and what we still need to know.  In particular, some entries of correspondence are nearly the same for every sample, and others can vary more significantly.  This suggests what possible experiments might be important to do next.  Since each row always sums to one, any ambiguity must lie in trading off between different columns within a row.  To resolve this ambiguity, we could find a subpopulation which we believe might include, say, half of those ambiguous columns, and then perform additional experiments in both modalities, drawing from that subpopulation.
+
+    \item Diameter estimation.  One problem with RUX samples is that there may be some very special direction in which the polytope has tremendous width.  That is, simply looking at ten or twenty RUX samples or even taking standard deviations over thousands of RUX samples, it may appear that the polytope is quite small.  Yet, in fact, it may be that there is a very special direction such that if we travel along that direction we find a value of $q$ which is radically different from the typical RUX samples.  To assess this, we attempt to show the overall diameter of the polytope is fairly limited, thus convincing ourselves that this is not a problem.  In this effort, we obtained Paired Rotationally Uniform eXtremal samples (PRUX): we first choose a direction uniformly at random and then found the two extremal vertices on the polytope in that direction and in the opposite direction.  We then computed the distance between those vertices, as well as the distance between those vertices projected to the direction.  Doing this procedure many times and making a scatterplot yields Figure \ref{fig:allenwidths}.  This figure suggests that the polytope may be only about 8 units in diameter (although we caution that general results on polytope diameter estimation are not encouraging, cf. \citep{brieden1998approximation}).  Considering that the magnitude of this diameter would be distributed over 1624 entries of the matrix, each of which lies in $[0,1]$, it would seem that the polytope may indeed be a fairly small set.  Although there is certainly no guarantee that there isn't some very large-magnitude direction hiding within this polytope, it is encouraging that we do not find any extreme outliers in this figure.  
+
+    \item Random uniform samples.  The maximum entropy principle provides a quite different point of view: given that we can never distinguish where $q$ may lie inside the polytope $\hat \Theta$, we could treat all such values of $q$ as equally likely.  In this vein, we apply a Dikin ellipsoid sampler to obtain samples drawn approximately uniformly from $\hat \Theta$.  We also look at the standard deviation of each entry of $q$ across all these samples, which gives us another way to assess where the polytope has significant ambiguity.  The results may be seen in \ref{fig:allenoutput}.
+\end{itemize}
+
+\begin{figure}
+\includegraphics[width=0.8\textwidth]{pics/allenRUX}
+\caption{10 Rotationally Uniform eXtremal samples from the polytope $\hat \Theta$.  These extremal samples from $\hat \Theta$ have quite a lot in common.  The common features are ones that we can feel confident are present in the true value of the joint distribution, $q^*$.  Other entries have more variability; these suggest specific experiments which might help disambiguate how technique I and technique II are related through $q^*$.  \label{fig:allenRUX}}
+\end{figure}
+
+\begin{figure}
+\includegraphics[width=0.8\textwidth]{pics/allenwidths}
+\caption{How wide is $\hat \Theta$?  Each dot above corresponds to a randomly selected direction.  The horizontal position of the dot indicates the width of the polytope along that direction, and the vertical position indicates the distance between the two extremal vertices along that direction.  It appears that the overall diameter of the set may be less than 8 units.\label{fig:allenwidths}}
 \end{figure}
 
 \begin{figure}
 \includegraphics[width=0.8\textwidth]{pics/allenavg}
-\caption{\label{fig:allenoutput}In the same setup as Figure \ref{fig:alleninput}.  Using our method we produce a set of possible $q$s which are consistent with the data tables given.   Using our method we first produce a single table, $\hat q$, that suggests how the outputs of the two techniques might line up.  We are able to do this even though we were never able to observe a cell processed by both techniques.    We emphasize, however, that this table is not guaranteed to be a consistent estimator for the true value of $q^*$.  However, we can guarantee that asymptotically the true $q^*$ will lie very close to a certain set $\hat \Theta$, containing $\hat q$. Fortunately, this set appears to be very small indeed, and tightly centered around $\hat q$.  To see this, we used a Dikin sampler to sample uniformly from $\hat \Theta$.  We saw that almost every sample was very close to $\hat q$.  The second plot shows an example of such a sample.  The third plot is an average value of each entry of $q$ over many samples.  The final plot indicates the standard deviation of each entry over the samples.  Where this is high we have some substantial ambiguity, and so it may be important to perform further experiments to narrow down the correspondence.  \label{fig:allenavg}}
+\caption{\label{fig:allenoutput}The first row shows the the MLM estimate of $\hat q$ (which is not a consistent estimator for $q^*$).  The second row shows a sample drawn approximately uniform from $\hat \Theta$, obtained by 10000 iterations of the Dikin sampler.  The third row shows the center of mass of $\hat \Theta$ and the final row shows the standard deviation of each entry (as estimated by the Dikin samples).  Notice that these deviations are never more than 6\%, suggesting that the polytope $\hat \Theta$ is closely centered around its center of mass.\label{fig:allenavg}}
 \end{figure}
 
-Another way to look at $\hat \Theta$ is to try to understand its scope of the polytope along various directions.  In this effort, we selected a direction uniformly at random and found the two extremal vertices in this direction.  We then computed the distance between those vertices, as well as the distance between those vertices projected to the direction.  Doing this procedure many times and making a scatterplot yields Figure \ref{fig:allenwidths}.  This figure suggests that the polytope may be only about 8 units in diameter, although we caution that general results on polytope diameter estimation are not encouraging, cf. \citep{brieden1998approximation}.  However, considering that the magnitude of this diameter would be distributed over 1624 entries of the matrix, each of which lies in $[0,1]$, it would seem that the polytope may indeed be constrained to be very close to the output we showed in Figure \ref{fig:allenoutput}.
+Together, these approaches give us practical ways of making real use of the results of the Markov Link Method.  More generally, they may be applied to many situations where a parameter of interest simply cannot be exactly identified but can be shown to lie near to some set.  
+
+\subsection{Evaluation}
+
+It is difficult to evaluate the accuracy of the Markov Link Method, because ground-truth data is not available in the cases where it actually matters.  Nonetheless, we can make a variety of attempts to see how the method fares.
+
+Parametric bootstrap provides one natural way to assess our confidence.  That is, we simulate a surrogate dataset according to the estimated distribution (holding the number of samples for each group fixed), apply our method to the resulting surrogate dataset, and then obtain an estimate $\hat \Theta^{(i)}$.  We do this 100 times.  For each estimate, we can then measure whether the original $\hat q$ was is close to the estimated polytope, i.e. for each $i$ we can look at the Euclidean norm between $\hat q$ and the set $\hat \Theta^{(i)}$.  Doing so for 100 bootstrap samples and taking a histogram of these distances yield Figure \ref{fig:bootstrap}.  The results suggest our estimator has a fairly tight confidence around the true polytope $\Theta^*$ for this dataset.  However, we note that theoretical properties of this are certainly lacking.
 
 \begin{figure}
-\includegraphics[width=0.8\textwidth]{pics/allenwidths}
-\caption{How wide is $\hat \Theta$?  Each dot above corresponds to a randomly selected direction.  The horizontal position of the dot indicates the width of the polytope along that direction, and the vertical position indicates the distance between the two extremal vertices along that direction.\label{fig:allenwidths}}
+\includegraphics[width=0.8\textwidth]{pics/allenbootstrap}
+\caption{Bootstrap gives us some measure of confidence in the MLM estimate.  None of the 100 bootstrap sample polytopes measured more than 2 units from from the original point estimate, $\hat q$.  That is, for each sample polytope we could find some point in the polytope that was less than 2 units from $\hat q$.  Spread out over the 1624 entries of the matrix $q$, each of which lies in $[0,1]$, we are encouraged insofar as 2 units does not seem to be a very great distance.  \label{fig:bootstrap}}
+\end{figure}
+
+Nonparametric bootstrap is another approach.  In this case, we simply sample the empirical distributions $\hat p,\hat h$ with replacement to obtain our surrogate datasets, and then apply the MLM method to each surrogate dataset.  We evaluate the degree of variability amongst the MLM polytope estimates by looking at the extremal points of those polytopes.  That is, we select a random direction and find the extremal vertex for each MLM estimate in that direction.  We can then look at position of these extremal points projected along that direction.  Looking over all the surrogates and subtracting the mean, we obtain a histogram of deviations.  We can then apply this to various directions, which yields the variety of histograms seen in Figure \ref{fig:allenbootstrap}.   
+
+\begin{figure}
+\includegraphics[width=0.8\textwidth]{pics/allenbootstrapnonparametric}
+\caption{Nonparametric bootstrap gives us another form of confidence.  For each of nine randomly selected directions and for each bootstrap sample polytope, we compute how far the polytope extends in that direction.   For each direction we can then plot a histogram of how far the various polytopes extend.  We see that they do not vary dramatically between samples, which gives us confidence that our estimate is somewhat close to the truth.\label{fig:allenbootstrap}}
+\end{figure}
+
+Finally, we can look directly at whether MLM helps us model the data $Y$.  In theory it seems possible that by pooling data between the modalities we could gain statistical power.  This is particularly true in the case of the particular dataset we investigated, wherein obtaining samples for technique II is quite expensive and so there are far fewer available datapoints for the $Y$ data.  Thus the empirical distribution of $Y|\ell$ (namely $\hat h$) may in fact be a very poor estimator.  This suggests that perhaps we might consider the estimator $\tilde h(y|\ell)\triangleq \sum_x \hat p(x|\ell) \hat q(y|x)$ instead,  since it allows us to leverage knowledge gained from the plentiful samples of technique I.  To test this estimator, we held out 10\% of the $Y$ data.  We then applied the MLM method to obtain estimates $\hat p,\hat q$ and use those to produce $\tilde h$ as an estimator for the distributions of $Y|\ell$.  We then compare $\tilde h$ and $\hat h$ by calculating the log-likelihood of each estimator on the held-out data.  We found an average value of -1.1 per entry for the MLM estimator $\tilde h$, but the empirical distribution $\hat h$ yields a held-out log likelihood of $-\infty$ because there are examples in the testing set that are simply never seen in the training set.  Even if we use pseudocounts to smooth the empirical distribution, we never obtain likelihoods as good as we get using the model which shared data between the two experimental modalities (See Figure \ref{fig:heldout}).  Thus we see that sharing data between the modalities helps can help us estimate each modality more accurately, as well as enabling us to understand more about the connection between the modalities.
+
+\begin{figure}
+\includegraphics[width=0.8\textwidth]{pics/allenheldout}
+\caption{Here we compare two estimators of the distributions of $Y|\ell$.  In the orange case, we use the Markov Link Method.  In the blue case, we use the empirical distributions of $Y|\ell$, smoothed using pseudocounts.  The horizontal axis indicates the size of these pseudocounts in log-scale.  The MLM method performs better than the empirical distribution at any level of smoothing. \label{fig:heldout}}
 \end{figure}
 
 \section{Conclusions}

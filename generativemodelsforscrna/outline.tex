@@ -164,11 +164,16 @@ Another way to dig deeper into the underfitting question is by looking at indivi
 \caption{\label{fig:residsdetail}}
 \end{figure}
 
-One potential reason for this systematic error might be that the negative binomial data distribution is inappropriate.  To diagnose this, we fitted a zero-inflated negative binomial distribution to each collection of cells Allen Institute dubbed a ``cluster.''  We then measured the goodness-of-fit, in terms of whether various moments matched.  In particular, we compared the empirical mean, standard deviation, and proportion of zeros to the corresponding statistics which would be predicted by the learned models.  We show this in Figure \ref{fig:zinbfitmatch}.
+One potential reason for this systematic error might be that the negative binomial data distribution is inappropriate.  To diagnose this, we fitted a zero-inflated negative binomial distribution to each collection of cells Allen Institute dubbed a ``cluster.''  We then measured the goodness-of-fit, in terms of whether various moments matched.  In particular, we compared the empirical mean, standard deviation, and proportion of zeros to the corresponding statistics which would be predicted by the learned models.  We show this in Figure \ref{fig:zinbfitmatch} and \ref{fig:zinbfitmatchex}.
 
 \begin{figure}
 \includegraphics[width=0.8\textwidth]{pics/zinbfitmatch}
 \caption{\label{fig:zinbfitmatch}}
+\end{figure}
+
+\begin{figure}
+\includegraphics[width=0.8\textwidth]{pics/zinbfitmatchex}
+\caption{Example zinb fits for particular celltype-gene pairings\label{fig:zinbfitmatchex}}
 \end{figure}
 
 In terms of mean and zero proportion, these seem nearly okay, but in terms of variance we can see that we are not doing the greatest job.  For a great many cell types we are predicting standard deviations which are much higher than the reality.  This is perhaps not surprising, since the negative binomial model is inherently overdispersed, and simply cannot accomodate underdispersed data.  

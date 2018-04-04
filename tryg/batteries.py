@@ -128,7 +128,10 @@ class TabCompleteGraph:
                                                       
 '''
 
-def batch_normalize_linear(name,momentsource,target_mean,target_stdev):
+def normalize_dense_affine(name,momentsource,target_mean,target_stdev):
+    '''
+    normalize a dense_affine layer based on data
+    '''
     GR=tf.get_default_graph()
     momentsource_tensor=GR.get_tensor_by_name(momentsource+":0")
     
@@ -146,22 +149,6 @@ def batch_normalize_linear(name,momentsource,target_mean,target_stdev):
 
     return assig1,assig2
 
-def set_limits_convex_combination(name,target,target_low,target_high):
-    GR=tf.get_default_graph()
-    
-    with tf.variable_scope(name):
-        bias1=GR.get_tensor_by_name(target+'_layer/bias1:0')
-        bias2=GR.get_tensor_by_name(target+'_layer/bias2:0')
-    
-        assig1 = tf.assign(bias1,target_low,name='rebias1')
-        
-        with tf.control_dependencies([assig1]):
-            assig2 = tf.assign(bias2,target_high,name='rebias2')
-
-        assig = tf.identity(assig2,name='batchnorm')
-
-    return assig
-
 
 '''
  _                           
@@ -174,6 +161,9 @@ def set_limits_convex_combination(name,target,target_low,target_high):
 '''
 
 def translate_initializer(init,dtype):
+    '''
+    Conventions for initializers
+    '''
     if isinstance(init,float) or isinstance(init,int):
         return tf.constant_initializer(init)
     elif isinstance(init,tuple):
@@ -183,51 +173,45 @@ def translate_initializer(init,dtype):
     else:
         return init
 
-
-
-def linear(name,inp,outsize,dtype,kernel_initializer='glorot',bias_initializer=0):
+def dense_affine(name,inp,outsize,dtype,kernel_initializer='glorot',bias_initializer=0,bias=True):
     with tf.variable_scope(name+"_layer"):
         inpsize=inp.shape[1]
-        bias_initializer=translate_initializer(bias_initializer,dtype)
+        if bias:
+            bias_initializer=translate_initializer(bias_initializer,dtype)
         kernel_initializer=translate_initializer(kernel_initializer,dtype)
         
         kernel = get_variable2('kernel',(inpsize,outsize),dtype,kernel_initializer)
-        bias = get_variable2('bias',(outsize),dtype,bias_initializer)
+        if bias:
+            bias = get_variable2('bias',(outsize),dtype,bias_initializer)
         
-        rez=tf.tensordot(inp,kernel,axes=[[1],[0]])+bias
+        if bias:
+            rez=tf.tensordot(inp,kernel,axes=[[1],[0]])+bias
+        else:
+            rez=tf.tensordot(inp,kernel,axes=[[1],[0]])
     return tf.identity(rez,name=name)
 
-def convex_combination(name,inp,outsize,dtype,bias1_initializer=(-1,1),bias2_initializer=(-1,1)):
-    with tf.variable_scope(name+"_layer"):
-        bias1_initializer=translate_initializer(bias1_initializer,dtype)
-        bias2_initializer=translate_initializer(bias2_initializer,dtype)
-        bias1 = get_variable2('bias1',(outsize),dtype,bias1_initializer)
-        bias2 = get_variable2('bias2',(outsize),dtype,bias2_initializer)
-        
-        rez=inp*(bias1) + (1-inp)*(bias2)
-    return tf.identity(rez,name=name)
+def elementwise_monotone(name,inp,dtype,bias_initializer=0,bias=True,n_basis=4,
+        xscale=1,ysoftplusscale=1):
+    '''
+    Unique parameterization for each guy in the second index
+    '''
 
-def diag(name,inp,outsize,dtype,weight_initializer=(-1,1)):
-    with tf.variable_scope(name+"_layer"):
-        weight_initializer=translate_initializer(weight_initializer,dtype)
-        weight = get_variable2('weight',outsize,dtype,weight_initializer)
-        rez=inp*weight
-    return tf.identity(rez,name=name)
+    assert len(inp.shape)==2
 
-def rbf(name,inp,outsize,minvar,dtype,center_initializer=(-1,1),scale_initializer=.5):
     with tf.variable_scope(name+"_layer"):
-        inpsize=inp.shape[1]
-        center_initializer=translate_initializer(center_initializer,dtype)
-        scale_initializer=translate_initializer(scale_initializer,dtype)
-        
-        centers=get_variable2('centers',shape=(inpsize,outsize),dtype=dtype,initializer=center_initializer)
-        stds=get_variable2('stds_almost',shape=(outsize,),dtype=dtype,initializer=scale_initializer)
-        var=tf.identity(stds**2+minvar,name='vars')
-        
-        diff= tf.reshape(inp,(tf.shape(inp)[0],inpsize,1)) - tf.reshape(centers,(1,inpsize,outsize))
-        diff = tf.identity(diff,name='diff')
-        rez = tf.exp(-.5*tf.reduce_sum(diff**2/var,axis=1),name='rez')
-    return tf.identity(rez,name)
+        shp=inp.shape[1]
+
+        inp=tf.reshape(inp,(tf.shape(inp)[0],shp,1))
+
+        bias = get_variable2('bias',(1,shp),dtype,bias_initializer)
+
+        shift = get_variable2('shift',(1,shp,n_basis),dtype,(-xscale,xscale))
+        mult_almost = get_variable2('mult_almost',(1,shp,n_basis),dtype,(-1,1))
+        mult = tf.softplus(ysoftplusscale+mult_almost,name='mult')
+
+        final = tf.reduce_sum(mult * tf.atan(inp+offset),axis=2,name='final')
+    return final
+
 
 '''
                  _           _     _ _ _ _         
@@ -271,10 +255,8 @@ def ZINB_prob(x,alpha,beta,h_log_off,h_log_on,name,h_logit=None):
         ################# nbinom
         # gamma term
         NB = tf.lgamma(x+alpha) - tf.lgamma(x+1) - tf.lgamma(alpha)
-        
-        # ps
-        NB = NB + alpha*log1mPP + x*logPP
-        
+        NB = tf.identity(NB + alpha*log1mPP + x*logPP,'nb')
+
         ############ put it with the mixture
         # let p the probability of going ON
         # we need log((1-p)*(x==0) + p*exp(NB))
@@ -312,6 +294,8 @@ def kl_categorical(a,lp_a,lp_b,name,formula=None):
 
 def kl_gaussian(mu1,sigma1sq,mu2,sigma2sq,name,formula=None):
     '''
+    1d element-by-element kl divergence
+
     .5*reduce_sum((mu1 - mu2)^2 / (sigma2sq) + sigma1sq/sigma2sq - 1 - log(sigma1sq/sigma2sq))
     '''
     
@@ -332,6 +316,74 @@ def kl_gaussian(mu1,sigma1sq,mu2,sigma2sq,name,formula=None):
         rez = .5*(ooss*(mu1-mu2)**2 + ooss*sigma1sq - 1 - tf.log(sigma1sq*ooss))
     return tf.identity(rez,name)
 
+def tf_hierarch_zinb_loss(data,alpha,beta,h_log_off,h_log_on,h_logit,
+        logpi,logpitilde,pitilde,
+        mu,mutilde,var,vartilde,
+        batchsz,Ng,
+        mask,masktot,
+        tree,name):
+    '''
+    Compute ELBO for a many cells according to modelsummary.lyx
+
+    data: vector of genes (batch,Ng,)
+    alpha: (Nclust,batch,Ng,)
+    beta: (Nclust,batch, Ng,)
+    h_log_off: (Nclust,batch,Ng,)
+    h_log_on: (Nclust,batch,Ng,)
+    h_logit: (Nclust,batch,Ng,)
+
+    logpi: (Nclust,)
+    logpitilde: (batch,Nclust)
+    pitilde: (batch,Nclust)
+    mu: vector of means (Nclust,subset_Nnodes,Nk)
+    mutilde: vector of means (Nnodes,batch,Nk)
+    var: vector of vars (Nclust,subset_Nnodes,)
+    vartilde: vector of vars (Nnodes,batch,)
+
+    batchsz
+    Ng
+
+    mask
+    masktot
+
+    tree: map from leaf to path-from-root
+    name
+    '''
+
+    Nclust=len(mu)
+
+    with tf.variable_scope(name+"_computation"):
+
+        # kl
+        pi_kl_loss = kl_categorical(pitilde,logpitilde,logpi,'pi_kl',formula='bt,bt,t->bt')
+
+        # per type
+        nbs = []
+        kls = []
+        pertype_reduced=[] # Nclust x batch
+        for t in range(Nclust):
+            lst = tree[t]
+            nbs.append(ZINB_prob(data,alpha[t],beta[t],h_log_off[t],h_log_on[t],'zinb_%03d'%t,h_logit=h_logit[t]))
+            kls.append([])
+
+            kl_reduced = 0
+            for node in lst:
+                kls[t].append(kl_gaussian(mutilde[node],vartilde[node],mu[t][node],var[t][node],'kl_%03d_%03d'%(t,node),
+                    formula='bk,bk,k,b->bk'))
+                kl_reduced += tf.reduce_sum(kls[t][-1],axis=1)
+
+            pertype_reduced.append(-kl_reduced + tf.reduce_sum(mask*nbs[-1],axis=1))
+
+        pertype_reduced = tf.stack(pertype_reduced,axis=1,name='pertype_reduced') # batch x Nclust
+        total = -tf.reduce_sum(pi_kl_loss) + tf.reduce_sum(pitilde*pertype_reduced)
+        total = tf.identity(-total/masktot,name='final')
+
+    return total,nbs,kls,pertype_reduced
+
+
+
+
+
 '''
       _                   
   ___(_)_ __   ___  _ __  
@@ -342,6 +394,10 @@ def kl_gaussian(mu1,sigma1sq,mu2,sigma2sq,name,formula=None):
 '''
 
 def einop(eqn,name,*inps):
+    '''
+    Expands tensors to put them all on the same dimensional footing
+    so they can be combined 
+    '''
     with tf.variable_scope(name):
         order,shapes,grs=einop_pure(eqn)
         assert len(shapes)==len(inps),"%s VS %s"%(str(shapes),str(inps))
@@ -423,6 +479,11 @@ def einop(eqn,name,*inps):
             
 
 def einop_pure(eqn):
+    '''
+    Determine how to combine tensors associated with 
+    different variables onto the same footing by expanding 
+    '''
+
     # get the axes
     eqn=eqn.split('->')
     grs = eqn[0].split(',')
@@ -606,7 +667,7 @@ def safe_softplus(x, limit=30):
     return rez
 
 
-def np_ZINB_loss(data,alpha,beta,h):
+def np_ZINB_prob(data,alpha,beta,h):
     '''
     returns log probability of data under a mixture of 
     negative binomial with a (1-h) probability of delta0
@@ -635,47 +696,49 @@ def np_kl_categorical(pi1,pi2):
 def np_kl_gaussian(mu1,var1,mu2,var2):
     return ((mu1-mu2)**2 / (2*var2)) + .5*((var1/var2) -1 - np.log(var1/var2))
 
-def np_loss(data,muT,varT,pi,mu1tilde,var1tilde,mu2tilde,var2tilde,pitilde,
-    alphaT,betaT,hT):
+def np_hierarch_zinb_loss(data,alpha,beta,h,pi,pitilde,mu,mutilde,var,vartilde,mask,tree):
     '''
-    For testing against the tensorflow implementation....
+    Compute ELBO for a single cell according to modelsummary.lyx
 
     data: vector of genes (Ng,)
-    muT: vector of means (Nclust,Nk)
-    varT: vector of vars (Nclust,)
-    pi: mixing (Nclust,)
-    mu1tilde: (Nk,)
-    var1tilde: ()
-    mu2tilde: (Nclust,Nk)
-    var2tilde: (Nclust,)
-    pitilde: (Nclust,)
-    w1: (Nk,)
-    w2: (Nk,)
-    alphaT: (Nclust,Ng,)
-    betaT: (Nclust, Ng,)
+    alpha: (Nclust,Ng,)
+    beta: (Nclust, Ng,)
     hT: (Nclust,Ng,)
+
+    pi: (Nclust,)
+    pitilde: (Nclust,)
+    mu: vector of means (Nclust,subset-Nnodes,Nk)
+    mutilde: vector of means (Nnodes,Nk)
+    var: vector of vars (Nclust,subset-Nnodes,)
+    vartilde: vector of vars (Nnodes,)
+
+    mask
+    tree: map from leaf to path-from-root
+
     '''
 
-    Nclust,Nk = muT.shape
-    Ng,=data.shape
+    Nclust = len(pi)
+    Nnodes = len(mutilde)
+    Nk = len(mu[0][0])
+    Ng = len(data)
 
-    print("Nclust",Nclust,"Nk",Nk,'Ng',Ng)
+    print("Nclust",Nclust,"Nnodes",Nnodes,"Nk",Nk,'Ng',Ng)
 
-
+    # kl
     pi_kl_loss = np.sum(np_kl_categorical(pitilde,pi))
 
+    # per type
     nbs = np.zeros((Nclust,Ng))
-    kl1s = np.zeros((Nclust,Nk))
-    kl2s = np.zeros((Nclust,Nk))
+    kls = np.zeros((Nclust,Nk))
     for t in range(Nclust):
-        nbs[t]=(np_ZINB_loss(data,alphaT[t],betaT[t],hT[t]))
-        kl1s[t]=(np_kl_gaussian(mu1tilde,var1tilde,muT[t],varT[t]))
-        kl2s[t]=(np_kl_gaussian(mu2tilde[t],var2tilde[t],0,1))
+        lst = tree[t]
+        nbs[t]=np_ZINB_prob(data,alpha[t],beta[t],h[t])
+        for node in lst:
+            kls[t] +=np_kl_gaussian(mutilde[node],vartilde[node],mu[t][node],var[t][node])
 
-    total = pi_kl_loss + np.sum(pitilde*(-np.sum(nbs,axis=1)+np.sum(kl1s+kl2s,axis=1)))
+    total = -pi_kl_loss + np.sum(pitilde*(np.sum(mask*nbs,axis=1)-np.sum(kls,axis=1)))
 
-
-    return total/np.prod(data.shape),pi_kl_loss,nbs,kl1s,kl2s
+    return -total/np.sum(mask),pi_kl_loss,nbs,kls
 
 
 
