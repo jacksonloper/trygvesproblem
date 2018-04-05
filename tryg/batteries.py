@@ -211,10 +211,11 @@ def dense_affine(name,inp,outsize,dtype,kernel_initializer='glorot',bias_initial
             rez=tf.tensordot(inp,kernel,axes=[[1],[0]])
     return tf.identity(rez,name=name)
 
-def elementwise_monotone(name,inp,dtype,bias_initializer=0,bias=True,n_basis=4,
-        xscale=1,ysoftplusscale=1):
+def elementwise_monotone(name,inp,dtype,bias_initializer=0.0,bias=True,n_basis=4,
+        xscale=1.0,ysoftplusscale=1.0):
     '''
-    Unique parameterization for each guy in the second index
+    Different monotone function for each value of the second index
+    applied uniformly across the first index
     '''
 
     assert len(inp.shape)==2
@@ -224,14 +225,19 @@ def elementwise_monotone(name,inp,dtype,bias_initializer=0,bias=True,n_basis=4,
 
         inp=tf.reshape(inp,(tf.shape(inp)[0],shp,1))
 
-        bias = get_variable2('bias',(1,shp),dtype,bias_initializer)
+        if bias:
+            bias = get_variable2('bias',(1,shp),dtype,bias_initializer)
 
         shift = get_variable2('shift',(1,shp,n_basis),dtype,(-xscale,xscale))
         mult_almost = get_variable2('mult_almost',(1,shp,n_basis),dtype,(-1,1))
         mult = tf.softplus(ysoftplusscale+mult_almost,name='mult')
 
-        final = tf.reduce_sum(mult * tf.atan(inp+offset),axis=2,name='final')
-    return final
+        if bias:
+            final = tf.reduce_sum(mult * tf.atan(inp+offset),axis=2,name='final_before_bias')
+            final = tf.identify(bias+final,name='final')
+        else:
+            final = tf.reduce_sum(mult * tf.atan(inp+offset),axis=2,name='final')
+    return tf.identify(final,name)
 
 
 '''
