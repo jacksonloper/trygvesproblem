@@ -149,6 +149,27 @@ def normalize_dense_affine(name,momentsource,target_mean,target_stdev):
 
     return assig1,assig2
 
+def normalize_dense_affine_somewhat(name,momentsource,target_mean,target_stdev,alpha):
+    '''
+    normalize a dense_affine layer based on data
+    '''
+    GR=tf.get_default_graph()
+    momentsource_tensor=GR.get_tensor_by_name(momentsource+":0")
+    
+    with tf.variable_scope(name):
+        wts=GR.get_tensor_by_name(momentsource+'_layer/kernel:0')
+        bias=GR.get_tensor_by_name(momentsource+'_layer/bias:0')
+    
+        layshape1 = wts.shape[1]
+        if layshape1.value is None:
+            layshape1=tf.shape(wts)[1]
+
+        mn,vr=tf.nn.moments(momentsource_tensor,axes=[0],name='moments')
+        assig1 = tf.assign(wts,(1-alpha)*wts + alpha* target_stdev * wts / tf.reshape(tf.sqrt(vr),[-1,layshape1]),name='rekernel')
+        assig2 = tf.assign(bias,(1-alpha)*bias + alpha*(target_mean + bias-mn),name='rebias')
+
+    return assig1,assig2
+
 
 '''
  _                           

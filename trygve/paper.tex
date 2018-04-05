@@ -279,7 +279,7 @@ For the benefit of the reader, we here repeat the statement of our theorem in mo
 \item We require the matrix $q^*$ has strictly positive entries, $q^*_{xy}\geq c>0$.
 \item We require that the rows of $p^*$ are linearly independent.
 \item Let $\hat p$ denote an empirical transition matrix drawn by obtaining $N_{X,\ell}$ samples for each row of $p^*$, i.e. we have samples $(\ell_1,X_1) \cdots (\ell_1,X_n)$ such that $\mathbb{P}(X_i=x) = p^*_{\ell_i,x}$, $N_{X,\ell}=\sum_{i=1}^n \mathbb{I}_{\ell_i=\ell}$, and $\hat p_{\ell x} = \sum_{i=1}^n \mathbb{I}_{X_i=x,\ell_i=\ell} / N_{X,\ell}$. 
-\item Let $\hat h$ denote an empirical transition matrix drawn by obtainin $N_{Y,\ell}$ samples for each row of $h^*$.  
+\item Let $\hat h$ denote an empirical transition matrix drawn by obtainin $N_{Y,\ell}$ samples for each row of $h^*=p^*q^*$.  
 \end{itemize}
 
 Now fix any $\kappa>0$.  Let
@@ -321,11 +321,11 @@ In conclusion, we see that by taking $\hat p$ sufficiently close to $p^*$ and $\
 \label{lem:easyconsistency} If $N_{X,\ell},N_{Y,\ell}\rightarrow \infty$ in such a way that $N_{Y,\ell'}/\sum_{\ell}N_{Y,\ell} \geq \rho>0$ for each $\ell'$, then $\UN{p^*q^*-\hat p\hat q},\EN{p^*q^*-\hat p\hat q}\rightarrow 0$ in probability.
 \end{lem}
 \begin{proof}
-Our first task is to make a short study of the continuity of KL divergences on categorical distributions when the probabilities are bounded away from zero.  Recall that we have insisted $q^*_{xy}\geq c>0$ for every $x,y$ -- and this also means $(pq^*)_{\ell y}$ for every $\ell y$, since each row of $p$ is itself a probability distribution.  Moreover, observe that the KL-divergence on $|\Omega_Y|$-dimensional distributions, $\kldiv{\hat r}{\tilde r} \triangleq \sum_{y} \hat r_y \log \hat r_y / \tilde r_y$, is \emph{uniformly} continuous on the space of such distributions whose minimum probability is greater than any fixed positive constant.   It follows that the map $h,p,q \mapsto D(h_\ell||(pq)_\ell)$ is also uniformly continuous on a space where $h$ and $q$ are strictly greater than some fixed positive constant.   
+Our first task is to make a short study of the continuity of KL divergences on categorical distributions when the probabilities are bounded away from zero.  Recall that we have insisted $q^*_{xy}\geq c>0$ for every $x,y$ -- and this also means $(pq^*)_{\ell y}\geq c$ for every $\ell,y$, since each row of $p$ is itself a probability distribution.  Moreover, observe that the KL-divergence on $|\Omega_Y|$-dimensional distributions, $\kldiv{\hat r}{\tilde r} \triangleq \sum_{y} \hat r_y \log \hat r_y / \tilde r_y$, is \emph{uniformly} continuous on the space of such distributions whose minimum probability is greater than any fixed positive constant.   It follows that the map $h,p,q \mapsto D(h_\ell||(pq)_\ell)$ is also uniformly continuous on a space where $h$ and $q$ are strictly greater than some fixed positive constant.   
 
-With this in hand, the remainder of the proof follows naturally, using the well-known results that $\hat p \rightarrow p^*$ and $\hat h \rightarrow p^*q^*$ in probability.
+With this in hand, the remainder of the proof follows naturally, using the well-known results that empirical distributions are consistent, i.e.\ $\hat p \rightarrow p^*$ and $\hat h \rightarrow p^*q^*$ in probability.
 
-Fix any $\epsilon,\pi$.  Let $\delta$ the modulus of continuity in the norm $\UN{\cdot}$ at level $\epsilon\rho$ for $h,p,q \mapsto \kldiv{h_\ell}{(pq)_\ell}$ when $h,q>c/2$.  Select $N$ large enough so that $\frac{1}{N_{Y,\ell}} \kappa |\Omega_X||\Omega_Y| \log \frac{1}{c} < \epsilon$ for each $\ell$ and so that with probability at least $\pi$ we have that $\hat h,\hat p$ so that $\UN{\hat h-p^*q^*},\UN{\hat p-p^*}\leq \delta,\UN{\hat h - p^*q^*}<c/2$. Then 
+Fix any $\epsilon,\pi$.  Let $\delta$ the modulus of continuity in the norm $\UN{\cdot}$ at level $\epsilon\rho$ for the map $h,p,q \mapsto \kldiv{h_\ell}{(pq)_\ell}$ restricted to the domain where $h,q>c/2$.  Select $N$ large enough so that $\frac{1}{N_{Y,\ell}} \kappa |\Omega_X||\Omega_Y| \log \frac{1}{c} < \epsilon$ for each $\ell$ and so that with probability at least $\pi$ we have that $\hat h,\hat p$ so that $\UN{\hat h-p^*q^*},\UN{\hat p-p^*}\leq \delta,\UN{\hat h - p^*q^*}<c/2$. Then, with probability $\pi$, we must have
 %
 \begin{align*}
 |\kldiv{\hat h_\ell}{(\hat p \hat q)_\ell} - \kldiv{h^*_\ell}{(\hat p \hat q)_\ell}| \leq \rho \epsilon \\
