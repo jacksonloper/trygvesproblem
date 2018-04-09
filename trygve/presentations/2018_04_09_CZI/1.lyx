@@ -301,11 +301,11 @@ pause
 status open
 
 \begin_layout Plain Layout
-Problem: we can never observe 
+Problem: what if can never observe 
 \begin_inset Formula $X,Y$
 \end_inset
 
- together
+ together?
 \end_layout
 
 \end_inset
@@ -353,7 +353,7 @@ than
 \begin_inset Formula $\ell$
 \end_inset
 
-, then in some cases we may assume that 
+, then we might make approximation
 \begin_inset Formula 
 \[
 \mathbb{P}(X,Y|\ell)=\mathbb{P}(X|\ell)\mathbb{P}(Y|X)
@@ -365,20 +365,66 @@ than
 \end_layout
 
 \end_deeper
-\begin_layout Block
-\begin_inset ERT
+\begin_layout Overprint
+\begin_inset Argument item:1
 status open
 
 \begin_layout Plain Layout
-
-
-\backslash
-pause
+2
 \end_layout
 
 \end_inset
 
- And we can estimate the set of calibrations:
+ 
+\end_layout
+
+\begin_deeper
+\begin_layout Standard
+Example:
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\ell$
+\end_inset
+
+ – cre line
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $X$
+\end_inset
+
+ – fine-grained cell-type (from deeply sequenced scRNA)
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $Y$
+\end_inset
+
+ – cell-type (from Patch-seq data)
+\end_layout
+
+\end_deeper
+\begin_layout Overprint
+\begin_inset Argument item:1
+status open
+
+\begin_layout Plain Layout
+3
+\end_layout
+
+\end_inset
+
+ 
+\end_layout
+
+\begin_deeper
+\begin_layout Standard
+Observe 
+\begin_inset Formula $\mathbb{P}(X|\ell),\mathbb{P}(Y|\ell)$
+\end_inset
+
+ and determine that set of calibrations consistent those observables:
 \begin_inset Formula 
 \[
 \Theta=\left\{ \mathbb{Q}:\ \mathbb{P}(Y|\ell)=\sum_{X}\mathbb{P}(X|\ell)\mathbb{Q}(Y|X)\right\} 
@@ -387,53 +433,6 @@ pause
 \end_inset
 
 
-\end_layout
-
-\end_deeper
-\begin_layout Standard
-\begin_inset Separator plain
-\end_inset
-
-
-\end_layout
-
-\begin_layout PlainFrame
-
-\end_layout
-
-\begin_deeper
-\begin_layout Block
-\begin_inset Argument 2
-status open
-
-\begin_layout Plain Layout
-Analyze 
-\begin_inset Formula $\Theta$
-\end_inset
-
-
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_deeper
-\begin_layout Itemize
-Rotatially Uniform eXtremal distribution
-\end_layout
-
-\begin_layout Itemize
-Uniform distribution
-\end_layout
-
-\begin_layout Itemize
-Diameter estimation
-\end_layout
-
-\begin_layout Itemize
-Center of mass
 \end_layout
 
 \end_deeper
@@ -550,6 +549,54 @@ To this:
 
 \end_layout
 
+\end_deeper
+\begin_layout Standard
+\begin_inset Separator plain
+\end_inset
+
+
+\end_layout
+
+\begin_layout PlainFrame
+
+\end_layout
+
+\begin_deeper
+\begin_layout Block
+\begin_inset Argument 2
+status open
+
+\begin_layout Plain Layout
+Analyze 
+\begin_inset Formula $\Theta$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+Rotatially Uniform eXtremal distribution
+\end_layout
+
+\begin_layout Itemize
+Uniform distribution
+\end_layout
+
+\begin_layout Itemize
+Diameter estimation
+\end_layout
+
+\begin_layout Itemize
+Center of mass
+\end_layout
+
+\end_deeper
 \end_deeper
 \end_body
 \end_document

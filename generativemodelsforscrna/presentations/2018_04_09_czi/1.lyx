@@ -173,7 +173,8 @@ Iterative clustering is a natural idea
 \end_inset
 
 
-\end_layout
+\begin_inset Branch more
+status collapsed
 
 \begin_layout Overprint
 \begin_inset Argument item:1
@@ -210,12 +211,17 @@ S_{15} & 0.00 & 270.00 & 306.00 & 2.00 & 20.00 & 0.00 & 102.00 & \cdots\\
 
 \end_layout
 
+\end_inset
+
+
+\end_layout
+
 \begin_layout Overprint
 \begin_inset Argument item:1
 status open
 
 \begin_layout Plain Layout
-2
+1
 \end_layout
 
 \end_inset
@@ -236,7 +242,7 @@ status open
 status open
 
 \begin_layout Plain Layout
-3
+2
 \end_layout
 
 \end_inset
@@ -245,28 +251,19 @@ status open
 \begin_inset Graphics
 	filename /home/jloper/Dropbox/research/papers/2018_02_21_trygve/trygvesproblem/generativemodelsforscrna/pics/Z1circle.png
 	lyxscale 20
-	width 80text%
+	width 40text%
 
 \end_inset
 
 
-\end_layout
-
-\begin_layout Overprint
-\begin_inset Argument item:1
-status open
-
-\begin_layout Plain Layout
-4
-\end_layout
-
+\begin_inset Formula $\rightarrow$
 \end_inset
 
 
 \begin_inset Graphics
 	filename /home/jloper/Dropbox/research/papers/2018_02_21_trygve/trygvesproblem/generativemodelsforscrna/pics/Z2.png
 	lyxscale 20
-	width 80text%
+	width 40text%
 
 \end_inset
 
@@ -423,6 +420,79 @@ Put them together
 
 \end_layout
 
+\end_deeper
+\begin_layout Standard
+\begin_inset Separator plain
+\end_inset
+
+
+\end_layout
+
+\begin_layout PlainFrame
+
+\end_layout
+
+\begin_deeper
+\begin_layout Block
+\begin_inset Argument 2
+status open
+
+\begin_layout Plain Layout
+A fully generative model for all the features of the data
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_deeper
+\begin_layout Standard
+\align center
+\begin_inset Graphics
+	filename /home/jloper/Dropbox/research/papers/2018_02_21_trygve/trygvesproblem/generativemodelsforscrna/pics/tree.png
+	lyxscale 20
+	width 40text%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $T$
+\end_inset
+
+ – cell type at finest resolution
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $Z_{n}\sim q(z;\theta_{T,n})$
+\end_inset
+
+ for each group 
+\begin_inset Formula $n$
+\end_inset
+
+ that 
+\begin_inset Formula $T$
+\end_inset
+
+ is a member of
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $X_{g}\sim p\left(x;f_{g}\left(Z_{1}\cdots Z_{N}\right)\right)$
+\end_inset
+
+ for each feature 
+\begin_inset Formula $g$
+\end_inset
+
+
+\end_layout
+
+\end_deeper
 \end_deeper
 \begin_layout Standard
 \begin_inset Separator plain
