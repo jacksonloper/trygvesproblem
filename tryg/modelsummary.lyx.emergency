@@ -1,0 +1,225 @@
+#LyX 2.2 created this file. For more info see http://www.lyx.org/
+\lyxformat 508
+\begin_document
+\begin_header
+\save_transient_properties true
+\origin unavailable
+\textclass article
+\begin_preamble
+\usepackage{fullpage}
+\end_preamble
+\use_default_options true
+\begin_modules
+theorems-ams
+\end_modules
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman "default" "default"
+\font_sans "default" "default"
+\font_typewriter "default" "default"
+\font_math "auto" "auto"
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100 100
+\font_tt_scale 100 100
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\branch more
+\selected 0
+\filename_suffix 0
+\color #faf0e6
+\end_branch
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename ../generativemodelsforscrna/pics/plate.png
+	lyxscale 50
+	width 20cm
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+The model
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+ELBO
+\end_layout
+
+\begin_layout Standard
+The generative process:
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $T^{c}\sim\mathrm{Categorical}(\pi)$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $Z_{n}^{c}\sim\mathcal{N}\left(\mathcal{\mu}_{T^{c},n},\sigma_{T^{c},n}^{2}I\right)$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\lambda_{g}^{c}=f_{g}\left(\sum_{i}h_{g,t_{i}(T^{c})}(Z_{t_{i}(T^{c})})\right)$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $X_{g}^{c}\sim r(\cdot;\lambda_{g}^{c})$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The (amortized) variational family
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $Z_{n}^{c}\sim\mathcal{N}\left(\tilde{\mu}_{n}(x^{c}),\tilde{\sigma}_{n}^{2}(x^{c})I\right)$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $T^{c}\sim\mathrm{Categorical}\left(\tilde{\pi}\left(x\right)\right)$
+\end_inset
+
+ (in particular, structured so that the distribution of 
+\begin_inset Formula $t_{i}(T^{c})$
+\end_inset
+
+ depends on 
+\begin_inset Formula $x$
+\end_inset
+
+ only through 
+\begin_inset Formula $\tilde{\mu}_{t_{0}(T^{c})}(x^{c})\cdots\tilde{\mu}_{t_{i-1}(T^{c})}(x^{c})$
+\end_inset
+
+)
+\end_layout
+
+\begin_layout Standard
+We then do variational inference and learning upon the variables 
+\begin_inset Formula $T^{c},Z_{t_{0}(T^{c})}^{c},Z_{t_{1}(T^{c})}^{c},\cdots$
+\end_inset
+
+.
+ Note that this is slightly different from doing inference on the variables
+ 
+\begin_inset Formula $T^{c}$
+\end_inset
+
+ and all the 
+\begin_inset Formula $\left\{ Z_{n}\right\} $
+\end_inset
+
+, in that we are implicitly marginalizing out the inactive nodes.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+\mathcal{L} & =\mathbb{E}_{q}\left[\log p(T,X,Z_{t_{0}(T)},Z_{t_{1}(T)},\cdots)\right]-\mathbb{E}_{q}\left[\log q(Z,Z_{t_{0}(T)},Z_{t_{1}(T)},\cdots)\right]\\
+ & =-D(\tilde{\pi}|\pi)-\left(\sum_{t}\tilde{\pi}_{t}\sum_{i}D\left(\tilde{\mu}_{t_{i}(t)},\tilde{\sigma}_{t_{i}(t)}^{2}||\mu_{t,t_{i}(t)},\sigma_{t,t_{i}(t)}^{2}\right)\right)+\sum_{t}\tilde{\pi}_{t}\mathbb{E}_{q}\left[\log r(X;\lambda(t,Z))\right]\\
+ & \approx-D(\tilde{\pi}|\pi)-\left(\sum_{t}\tilde{\pi}_{t}\sum_{i}D\left(\tilde{\mu}_{t_{i}(t)},\tilde{\sigma}_{t_{i}(t)}^{2}||\mu_{t,t_{i}(t)},\sigma_{t,t_{i}(t)}^{2}\right)\right)+\sum_{t}\tilde{\pi}_{t}\log r(X;\lambda(t,Z))
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Network model
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\end_body
+\end_document

@@ -197,12 +197,11 @@ def translate_initializer(init,dtype):
 def dense_affine(name,inp,outsize,dtype,kernel_initializer='glorot',bias_initializer=0,bias=True):
     with tf.variable_scope(name+"_layer"):
         inpsize=inp.shape[1]
-        if bias:
-            bias_initializer=translate_initializer(bias_initializer,dtype)
         kernel_initializer=translate_initializer(kernel_initializer,dtype)
         
         kernel = get_variable2('kernel',(inpsize,outsize),dtype,kernel_initializer)
         if bias:
+            bias_initializer=translate_initializer(bias_initializer,dtype)
             bias = get_variable2('bias',(outsize),dtype,bias_initializer)
         
         if bias:
@@ -210,7 +209,7 @@ def dense_affine(name,inp,outsize,dtype,kernel_initializer='glorot',bias_initial
         else:
             rez=tf.tensordot(inp,kernel,axes=[[1],[0]])
     return tf.identity(rez,name=name)
-
+    
 def elementwise_monotone(name,inp,dtype,bias_initializer=0.0,bias=True,n_basis=4,
         xscale=1.0,ysoftplusscale=1.0):
     '''
@@ -225,20 +224,23 @@ def elementwise_monotone(name,inp,dtype,bias_initializer=0.0,bias=True,n_basis=4
 
         inp=tf.reshape(inp,(tf.shape(inp)[0],shp,1))
 
+        xinit=translate_initializer((-xscale,xscale),dtype)
+        yinit=translate_initializer((-1,1),dtype)
+        
         if bias:
+            bias_initializer=translate_initializer(bias_initializer,dtype)
             bias = get_variable2('bias',(1,shp),dtype,bias_initializer)
 
-        shift = get_variable2('shift',(1,shp,n_basis),dtype,(-xscale,xscale))
-        mult_almost = get_variable2('mult_almost',(1,shp,n_basis),dtype,(-1,1))
-        mult = tf.softplus(ysoftplusscale+mult_almost,name='mult')
+        shift = get_variable2('shift',(1,shp,n_basis),dtype,xinit)
+        mult_almost = get_variable2('mult_almost',(1,shp,n_basis),dtype,yinit)
+        mult = tf.nn.softplus(ysoftplusscale+mult_almost,name='mult')
 
         if bias:
-            final = tf.reduce_sum(mult * tf.atan(inp+offset),axis=2,name='final_before_bias')
-            final = tf.identify(bias+final,name='final')
+            final = tf.reduce_sum(mult * tf.atan(inp+shift),axis=2,name='final_before_bias')
+            final = tf.identity(bias+final,name='final')
         else:
-            final = tf.reduce_sum(mult * tf.atan(inp+offset),axis=2,name='final')
-    return tf.identify(final,name)
-
+            final = tf.reduce_sum(mult * tf.atan(inp+shift),axis=2,name='final')
+    return tf.identity(final,name)
 
 '''
                  _           _     _ _ _ _         

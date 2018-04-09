@@ -1,0 +1,64 @@
+def init(check=False,multi=None,threads=1):
+    with GR.as_default():
+        if 'sess' in locals():
+            if isinstance(sess,list):
+                for s in sess:
+                    s.close()
+            else:
+                sess.close()
+        if 'sess' in globals():
+            sess=globals()['sess']
+            if isinstance(sess,list):
+                for s in sess:
+                    s.close()
+            else:
+                sess.close()
+            
+        if multi is None:
+            sess=tf.Session()
+            sess.run(globinit)
+            
+        else:
+            sess=[]
+            for i in range(multi):
+                if threads is None:
+                    sess.append(tf.Session())
+                else:
+                    session_conf = tf.ConfigProto(
+                      intra_op_parallelism_threads=threads,
+                      inter_op_parallelism_threads=threads,
+                      device_count={'CPU': threads})
+                    
+                    print(session_conf)
+                    sess.append(tf.Session(config=session_conf))
+                sess[-1].run(globinit)
+    return sess
+# sess=init(True)
+sess=init(True,multi=2)
+
+# train for a bit using only the first layer of hierarchy
+with GR.as_default():
+    
+    binsize=1000
+    dct = make_lr_dict(data=allguys[:binsize],node_mask='primeonly',
+                       encoder=.00001,decoder=.00001,prior=.00001,encoder_pi=.00001,alpha=.1) 
+    
+#     nsweep=50000
+    nsweep=100000
+    bins=np.r_[0:allguys.shape[0]:binsize]
+
+    assigs=['loss_computation/final:0']
+    assigs.append('optimizers/all')
+#     assigs.append('batchnorms/all')
+    
+    errs=[]
+    for i in bat.range_noisy(nsweep):
+        
+        # batch normalize
+        
+        
+        # run an epoch
+        for j in range(len(bins)-1):
+            dct[data]=allguys[bins[j]:bins[j+1]]
+            loss=sess.run(assigs,feed_dict=dct)[0]
+            errs.append(loss)
