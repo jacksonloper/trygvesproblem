@@ -394,14 +394,14 @@ Example:
 \begin_inset Formula $X$
 \end_inset
 
- – fine-grained cell-type as determined by deeply sequenced scRNA 
+ – fine-grained cell-type (from deeply sequenced scRNA)
 \end_layout
 
 \begin_layout Itemize
 \begin_inset Formula $Y$
 \end_inset
 
- – cell-type as determined by Patch-seq data
+ – cell-type (from Patch-seq data)
 \end_layout
 
 \end_deeper
@@ -508,7 +508,7 @@ Empirical results
 \end_layout
 
 \begin_layout Block
-From this:
+From datasets about two separate experimental methods...
 \end_layout
 
 \begin_layout Block
@@ -535,7 +535,8 @@ pause
 
 \end_inset
 
-To this:
+...
+ to a set of possible calibrations between the methods.
 \end_layout
 
 \begin_layout Block
