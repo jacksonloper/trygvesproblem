@@ -116,6 +116,10 @@ The model
 
 \end_layout
 
+\begin_layout Section
+ELBO
+\end_layout
+
 \begin_layout Standard
 The generative process:
 \end_layout

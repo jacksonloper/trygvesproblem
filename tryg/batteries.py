@@ -235,11 +235,13 @@ def elementwise_monotone(name,inp,dtype,bias_initializer=0.0,bias=True,n_basis=4
         mult_almost = get_variable2('mult_almost',(1,shp,n_basis),dtype,yinit)
         mult = tf.nn.softplus(ysoftplusscale+mult_almost,name='mult')
 
+        final_unreduced = mult * tf.atan(inp+shift,name='final_unreduced')
+
         if bias:
-            final = tf.reduce_sum(mult * tf.atan(inp+shift),axis=2,name='final_before_bias')
+            final = tf.reduce_sum(final_unreduced,axis=2,name='final_before_bias')
             final = tf.identity(bias+final,name='final')
         else:
-            final = tf.reduce_sum(mult * tf.atan(inp+shift),axis=2,name='final')
+            final = tf.reduce_sum(final_unreduced,axis=2,name='final')
     return tf.identity(final,name)
 
 '''

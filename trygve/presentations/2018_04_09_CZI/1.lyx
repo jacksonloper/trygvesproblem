@@ -424,7 +424,7 @@ Observe
 \begin_inset Formula $\mathbb{P}(X|\ell),\mathbb{P}(Y|\ell)$
 \end_inset
 
- and determine that set of calibrations consistent those observables:
+ and determine set of calibrations consistent with those observables:
 \begin_inset Formula 
 \[
 \Theta=\left\{ \mathbb{Q}:\ \mathbb{P}(Y|\ell)=\sum_{X}\mathbb{P}(X|\ell)\mathbb{Q}(Y|X)\right\} 

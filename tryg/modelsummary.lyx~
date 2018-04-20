@@ -116,6 +116,10 @@ The model
 
 \end_layout
 
+\begin_layout Section
+ELBO
+\end_layout
+
 \begin_layout Standard
 The generative process:
 \end_layout
@@ -200,12 +204,20 @@ We then do variational inference and learning upon the variables
 \begin_inset Formula 
 \begin{align*}
 \mathcal{L} & =\mathbb{E}_{q}\left[\log p(T,X,Z_{t_{0}(T)},Z_{t_{1}(T)},\cdots)\right]-\mathbb{E}_{q}\left[\log q(Z,Z_{t_{0}(T)},Z_{t_{1}(T)},\cdots)\right]\\
- & =-D(\tilde{\pi}|\pi)-\left(\sum_{t}\tilde{\pi}_{t}\sum_{i}D\left(\tilde{\mu}_{t_{i}(t)},\tilde{\sigma}_{t_{i}(t)}^{2}||\mu_{t_{i}(t)},\sigma_{t_{i}(t)}^{2}\right)\right)+\sum_{t}\tilde{\pi}_{t}\mathbb{E}_{q}\left[\log r(X;\lambda(t,Z))\right]\\
- & \approx-D(\tilde{\pi}|\pi)-\left(\sum_{t}\tilde{\pi}_{t}\sum_{i}D\left(\tilde{\mu}_{t_{i}(t)},\tilde{\sigma}_{t_{i}(t)}^{2}||\mu_{t_{i}(t)},\sigma_{t_{i}(t)}^{2}\right)\right)+\sum_{t}\tilde{\pi}_{t}\log r(X;\lambda(t,Z))
+ & =-D(\tilde{\pi}|\pi)-\left(\sum_{t}\tilde{\pi}_{t}\sum_{i}D\left(\tilde{\mu}_{t_{i}(t)},\tilde{\sigma}_{t_{i}(t)}^{2}||\mu_{t,t_{i}(t)},\sigma_{t,t_{i}(t)}^{2}\right)\right)+\sum_{t}\tilde{\pi}_{t}\mathbb{E}_{q}\left[\log r(X;\lambda(t,Z))\right]\\
+ & \approx-D(\tilde{\pi}|\pi)-\left(\sum_{t}\tilde{\pi}_{t}\sum_{i}D\left(\tilde{\mu}_{t_{i}(t)},\tilde{\sigma}_{t_{i}(t)}^{2}||\mu_{t,t_{i}(t)},\sigma_{t,t_{i}(t)}^{2}\right)\right)+\sum_{t}\tilde{\pi}_{t}\log r(X;\lambda(t,Z))
 \end{align*}
 
 \end_inset
 
+
+\end_layout
+
+\begin_layout Section
+Network model
+\end_layout
+
+\begin_layout Standard
 
 \end_layout
 
