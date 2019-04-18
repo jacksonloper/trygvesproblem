@@ -6,3 +6,8 @@ ignoreme*
 *.log
 *.out
 *.aux
+*junk*
+*.lyx~*
+*lyx#*
+*.ipynb_check*
+*lyx*
